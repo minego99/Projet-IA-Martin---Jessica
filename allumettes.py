@@ -12,7 +12,8 @@ class Player:
     @property
     def nb_games(self): #attribut dérivable
         return self.nb_wins + self.nb_loses
-
+    
+    @staticmethod
     def play(self):
         return random.choice([1, 2, 3])
 
