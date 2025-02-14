@@ -168,14 +168,16 @@ class GameView(tk.Tk):
             attributs: 
                 - comportement de la partie en cours
                 - titre de la partie 
-                - Canvas du jeu (300px sur 300px)
-                - joueur en cours dans la partie
+                - canvas du jeu (300px sur 300px)
+                - chaîne de caractères indiquant le nom du joueur actif 
+                - cadre pour les bouttons du jeu
            
             Rempli aussi la liste des joueurs avec les joueurs inscrits dans la partie
             et choisi aléatoirement un des joueurs inscrits pour commencer la partie
 
         """
         super().__init__() # héritage de tk.Tk
+        
         self.controller = controller
         self.title("Game of Matches")
         
@@ -199,6 +201,7 @@ class GameView(tk.Tk):
         self.update_view()
 
     def update_view(self):
+        
         # Met à jour l'affichage du jeu
         self.canvas.delete("all")  # efface le canvas avant de redessiner
         nb_matches = self.controller.get_nb_matches()
