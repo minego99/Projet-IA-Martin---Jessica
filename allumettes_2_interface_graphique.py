@@ -136,20 +136,21 @@ class GameModel:
 
         """
         return self.players[self.current_player]
-# C'est le perdant qui gagne et le gagnant qui perd
     def get_winner(self):
-        """
-        Renvoie le joueur actif au moment où le game_over devient True
-
-        """
-        return self.players[self.current_player] if self.is_game_over() else None
-
-    def get_loser(self):
         """
         Renvoie le joueur non-actif au moment où le game_over devient True
 
         """
-        return self.players[1 - self.current_player] if self.is_game_over() else None
+    
+        return self.players[1- self.current_player] if self.is_game_over() else None
+
+    def get_loser(self):
+        """
+        Renvoie le joueur actif au moment où le game_over devient True
+
+        """
+       
+        return self.players[self.current_player] if self.is_game_over() else None
 
     def step(self, action): # màj de l'état du jeu en modifiant nb matches restants dans le jeu
         """
@@ -165,6 +166,8 @@ class GameView(tk.Tk):
         Constructeur de la gestion graphique du jeu:
             hérite de:
                 - Tkinter.TK
+            argument:
+                GameController du jeu en cours
             attributs: 
                 - comportement de la partie en cours
                 - titre de la partie 
@@ -172,8 +175,8 @@ class GameView(tk.Tk):
                 - chaîne de caractères indiquant le nom du joueur actif 
                 - cadre pour les bouttons du jeu
            
-            Rempli aussi la liste des joueurs avec les joueurs inscrits dans la partie
-            et choisi aléatoirement un des joueurs inscrits pour commencer la partie
+            Rempli aussi le cadre de 3 bouttons pour les 3 actions possible
+            Tous les widgets Tkinter sont assemblés et le visuel est actualisé
 
         """
         super().__init__() # héritage de tk.Tk
@@ -194,21 +197,34 @@ class GameView(tk.Tk):
         self.buttons_frame.pack()
         
         # Création des boutons pour retirer de 1 à 3 allumettes
-        for i in range(1, 4):
+        for i in range(0, 3):
             btn = tk.Button(self.buttons_frame, text=f"Remove {i}", command=lambda n=i: self.controller.handle_human_move(n))  
             btn.pack(side=tk.LEFT) #  place chaque bouton dans la buttons_frame en les disposant horizontalement
         
         self.update_view()
 
     def update_view(self):
-        
+        """
+        Actualise l'affichage du jeu:
+            - supprime le contenu précédant du canvas
+            - actualise le nombre d'allumettes restantes et les dessine
+            - actualise le message affichant le joueur actif
+        """
         # Met à jour l'affichage du jeu
+        # Nécessaire ?
         self.canvas.delete("all")  # efface le canvas avant de redessiner
         nb_matches = self.controller.get_nb_matches()
         self.draw_matches(nb_matches)
         self.message_label.config(text=self.controller.get_status_message()) # méthode config de Tkinter utilisée pour changer le texte dans le Label
 
     def draw_matches(self, nb):
+        """
+        Dessine les allumettes en fonction du nombre d'allumettes restantes
+        argument:
+            - nombre d'allumettes restantes
+        Pour chaque allumette restante, dessine une ligne et un oval et les place à des coordonnées fixes par rapport à leur nombre
+        (première allumette en position 1, deuxième allumette en position 2, etc...)
+        """
         # Dessine le nombre d'allumettes sur le canvas
         for i in range(nb):
             x = 20 + i * 30 # x = poistion horizontale. 20 px depuis le bord gauche puis chaque allumette à 30 px de la précédente
@@ -218,6 +234,11 @@ class GameView(tk.Tk):
             self.canvas.create_oval(x - 5, 30, x + 5, 50, fill="red", outline="black") # (x - 5, 30) : coin supérieur gauche (5 px à gauche de x et 30 pixels du haut) et (x + 5, 50) : coin inférieur droit (5 px à droite de x et 50 pxdu haut).
     
     def end_game(self):
+        """
+        Dessine l'écran de fin de partie
+        Supprime les bouttons de jeu
+        Affiche un bouton capable de recommencer la partie
+        """
         # Affiche l'écran de fin de partie
         for widget in self.buttons_frame.winfo_children(): # récupération des éléments de la frame
             widget.destroy() # déstruction de ceux-ci un à un
@@ -225,10 +246,16 @@ class GameView(tk.Tk):
         reset_btn.pack()
 
     def reset(self):
+        """
+        Permet de recommencer une nouvelle partie
+        Supprime tous les widgets dans le canvas
+        Actualise l'affichage
+        
+        """
         # Réinitialise l'affichage pour recommencer une partie
         for widget in self.buttons_frame.winfo_children():
             widget.destroy()
-        for i in range(1, 4):
+        for i in range(0, 3):
             btn = tk.Button(self.buttons_frame, text=f"Remove {i}", command=lambda n=i: self.controller.handle_human_move(n))  
             btn.pack(side=tk.LEFT)
         self.update_view()
@@ -236,7 +263,16 @@ class GameView(tk.Tk):
 
 # Contrôleur qui lie la logique du jeu avec la vue
 class GameController:
+
     def __init__(self, player1, player2, nb_matches):
+        """
+        Constructeur du contrôleur du jeu
+        arguments: 
+            - premier joueur(humain)
+            - deuxième joueur(IA)
+            - nombre d'allumettes pour le début du jeu
+        
+        """
         # Vérifie qu'au moins un joueur est un humain
         if not (isinstance(player1, Human) or isinstance(player2, Human)):
             raise ValueError("There must be at least one human player.")
@@ -249,6 +285,11 @@ class GameController:
         self.start_game()
 
     def start_game(self):
+        """
+        Démarre le jeu
+        Si l'IA joue en premier, lance d'abord le tour de l'IA
+        Sinon, lance la gestion du jeu et des visuels
+        """
         # Démarre le jeu, gérant le premier mouvement si c'est l'IA.
         if not isinstance(self.model.get_current_player(), Human):
             self.handle_ai_move()
@@ -258,10 +299,20 @@ class GameController:
         self.view.mainloop() # gère les événements, maintient l'interface ouverte et permet les màj visuelles 
 
     def get_nb_matches(self):
+        """
+        Renvoie le nombre d'allumettes restantes
+        """
         # Retourne le nombre restant d'allumettes du jeu
         return self.model.nb
 
     def get_status_message(self):
+        """
+        Actualise le message informant le statut de la partie
+        Si la partie est finie, 
+        Renvoie le nom du joueur gagnant,
+        sinon,
+        Renvoie le nom du joueur actif
+        """
         # Fournit une chaîne de caractères indiquant l'état du jeu
         if self.model.is_game_over():
             winner = self.model.get_winner()
@@ -271,6 +322,12 @@ class GameController:
             return f"{current_player.name}'s turn."
 
     def reset_game(self):
+        """
+        Remet à 0 les paramètres de la partie, et démarre une nouvelle
+        Appelle les fonctions de reset du modèle et du visuel
+        Génère un joueur actif aléatoirement, si le joueur actif est l'IA, elle joue un tour immédiatement
+        Donne ensuite la main à l'humain avec un nouveau layout
+        """
         # Réinitialise le jeu
         self.model.reset()
         self.view.reset()
@@ -278,6 +335,16 @@ class GameController:
             self.handle_ai_move()
 
     def handle_human_move(self, matches_taken):
+        """
+        Gestion du mouvement du joueur humain
+        argument:
+            - nombre d'alumettes enlevées
+        actualise le joueur en cours, et s'il est bien humain:
+            - fait avancer le calcul du modèle
+            - vérifie qu'il reste des allumettes, si c'est le cas change de joueur et si le joueur humain est toujours actif, fais jouer l'IA
+            - s'il n'y a plus d'allumettes, lance la fin de partie
+        actualise enfin le visuel de la partie 
+        """
         # Mouvement humain
         current_player = self.model.get_current_player()
         
@@ -293,6 +360,12 @@ class GameController:
         self.view.update_view()
 
     def handle_ai_move(self):
+        """
+        Gestion du mouvement de l'IA
+        actualise le joueur en cours, fais jouer l'IA, fais avancer la partie
+        S'il ne reste plus d'allumettes, lance la fin de partie, sinon le joueur actif est changé
+        actualise enfin le visuel de la partie
+        """
         # Mouvement IA
         current_player = self.model.get_current_player()
         matches_taken = current_player.play() # l'IA joue
@@ -306,6 +379,11 @@ class GameController:
         self.view.update_view()
 
     def handle_end_game(self):
+        """
+        Récupère le gagnant et le perdant
+        leur fait augmenter leur score de victoire et de défaite (respectivement)
+        Affiche l'écran de fin de partie
+        """
         # Fin de la partie
         winner = self.model.get_winner()
         loser = self.model.get_loser()
