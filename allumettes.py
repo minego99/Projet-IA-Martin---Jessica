@@ -14,7 +14,7 @@ class Player:
         return self.nb_wins + self.nb_loses
     
     @staticmethod
-    def play(self):
+    def play():
         return random.choice([1, 2, 3])
 
     def win(self):
