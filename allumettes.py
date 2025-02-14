@@ -1,5 +1,3 @@
-# __________________________EXERCISE 4___________________________
-
 import random
 
 class Player:
@@ -13,7 +11,8 @@ class Player:
     def nb_games(self): #attribut dérivable
         return self.nb_wins + self.nb_loses
 
-    def play(self):
+    @staticmethod
+    def play():
         return random.choice([1, 2, 3])
 
     def win(self):
@@ -62,7 +61,7 @@ class Game:
         current_player = 0
         while self.nb > 0:
             self.display()
-            action = self.players[current_player].play()
+            action = self.players[current_player].play() 
             self.step(action) 
     
             #check si le jeu doit se terminer
@@ -76,12 +75,13 @@ class Game:
 
 
 if __name__ == "__main__":
-    player1 = Human("Alice")
-    player2 = Player("Random Bot")
+    player1 = Human("Jean")
+    player2 = Player("Bot")
     game = Game(6, player1, player2)
     
     game.play()
     print(player1)
     print(player2)
+
 
 
