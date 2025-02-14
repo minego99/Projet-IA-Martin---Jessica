@@ -1,14 +1,15 @@
+
 from gamemodel import GameModel, Human, Player
 from gameview import GameView
 
 import random
 import tkinter as tk
 
-# Joueur (en général)
-
-
-
-# Vue représentant l'interface graphique du jeu
+"""
+La classe GameController fait le lien entre la classe GameModel et la classe GameView
+Les fonctions de la classe prennent en compte la logique du jeu et les fonctions d'affichage et les adapte en fonction de l'état du jeu
+Le lancement du script se fait aussi en bas de page
+"""
 
 # Contrôleur qui lie la logique du jeu avec la vue
 class GameController:
@@ -22,6 +23,7 @@ class GameController:
             - nombre d'allumettes pour le début du jeu
         
         """
+        
         # Vérifie qu'au moins un joueur est un humain
         if not (isinstance(player1, Human) or isinstance(player2, Human)):
             raise ValueError("There must be at least one human player.")

@@ -1,4 +1,9 @@
 import random
+"""
+La classe GameModel contient toute la logique des règles du jeu des allumettes
+Les valeurs renvoyées permettent à GameController de composer le statut du jeu
+La classe Player comprend le comportement de l'IA aléatoire, et sa classe héritée celle du joueur humain
+"""
 
 class Player:
     def __init__(self, name, game=None):
@@ -46,7 +51,7 @@ class Player:
 
         """
         self.nb_loses += 1
-
+        
     def __str__(self):
         """
         Descriptions du joueur

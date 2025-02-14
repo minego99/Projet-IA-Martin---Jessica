@@ -1,5 +1,10 @@
 import tkinter as tk
 
+"""
+La classe contient tout le nécessaire pour l'affichage du jeu.
+Elle prend en compte les paramètres de la classe gamecontroller pour les interpréter et les appliquer dans le package tkinters
+"""
+
 class GameView(tk.Tk):
     def __init__(self, controller):
         """
