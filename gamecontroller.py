@@ -17,9 +17,14 @@ class GameController:
         """
         Constructeur du contrôleur du jeu
         arguments: 
-            - premier joueur(humain)
-            - deuxième joueur(IA)
-            - nombre d'allumettes pour le début du jeu
+            - premier joueur(humain) (PLAYER)
+            - deuxième joueur(IA) (PLAYER)
+            - nombre d'allumettes pour le début du jeu (INT)
+            
+        attributs:
+            - Modèle de la partie (MODEL)
+            - Interface graphiue de la partie (VIEW)
+        Vérifie aussi qu'au moins un joueur humain soit dans la partie
         
         """
         
@@ -50,7 +55,8 @@ class GameController:
 
     def get_nb_matches(self):
         """
-        Renvoie le nombre d'allumettes restantes
+        Retourne:
+            - le nombre d'allumettes restantes (INT)
         """
         # Retourne le nombre restant d'allumettes du jeu
         return self.model.nb
@@ -58,10 +64,9 @@ class GameController:
     def get_status_message(self):
         """
         Actualise le message informant le statut de la partie
-        Si la partie est finie, 
-        Renvoie le nom du joueur gagnant,
-        sinon,
-        Renvoie le nom du joueur actif
+        Retourne: 
+            - Nom du gagnant si la partie est fine (STR)
+            - Nom du joueur actif si la partie est toujours en cours (STR)
         """
         # Fournit une chaîne de caractères indiquant l'état du jeu
         if self.model.is_game_over():
@@ -88,7 +93,7 @@ class GameController:
         """
         Gestion du mouvement du joueur humain
         argument:
-            - nombre d'alumettes enlevées
+            - nombre d'alumettes enlevées (INT)
         actualise le joueur en cours, et s'il est bien humain:
             - fait avancer le calcul du modèle
             - vérifie qu'il reste des allumettes, si c'est le cas change de joueur et si le joueur humain est toujours actif, fais jouer l'IA

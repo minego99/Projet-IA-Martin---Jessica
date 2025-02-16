@@ -9,10 +9,12 @@ class Player:
     def __init__(self, name, game=None):
         """
         Constructeur du profil du joueur:
-            
+            argument:
+                - nom du joueur(STR)
+                - partie dans laquelle est le joueur(GAME)
             attributs: 
-                - nom du joueur
-                - objet de la partie dans laquelle est le joueur
+                - nom du joueur(STR)
+                - objet de la partie dans laquelle est le joueur(GAME)
                 - nombre de victoires
                 - nombres de défaites
             attribut dérivable:
@@ -26,7 +28,9 @@ class Player:
     @property
     def nb_games(self): # attribut dérivable
         """
-        Renvoie le nombre de parties jouées = nombre de défaites + nombre de victoires
+        
+        Retourne:
+            - le nombre de parties jouées = nombre de défaites + nombre de victoires (INT)
         """
         return self.nb_wins + self.nb_loses
 
@@ -34,7 +38,9 @@ class Player:
     def play():
         """
         Comportement de l'IA à choix aléatoire
-        Renvoie le nombre d'allumettes enlevées
+        
+        Retourne:
+            - le nombre d'allumettes enlevées (INT)
         """
         return random.choice([1, 2, 3])
 
@@ -54,8 +60,10 @@ class Player:
         
     def __str__(self):
         """
-        Descriptions du joueur
-        Renvoie le nom et le nombre de défaites et de victoires en une chaîne de caractères
+        Description du joueur
+        
+        Retourne:
+            - le nom et le nombre de défaites et de victoires (STR)
 
         """
         return f"{self.name} (Wins: {self.nb_wins}, Losses: {self.nb_loses})"
@@ -66,8 +74,11 @@ class Human(Player):
     def play(self, choice):
         """
         Seule fonction propre au joueur humain
-        Demande un choix entre 1 et 3 
-        Renvoie le nombre choisi
+        
+        Paramètre: 
+            - un choix entre 1 et 3 (INT) 
+        Retourne:
+            - le nombre choisi (INT)
 
         """
         return choice
@@ -99,13 +110,14 @@ class GameModel:
 
     def shuffle(self): # mélange l'ordre des joueurs 
         """
-        Renvoie la liste des joueurs inscrits avec les éléments dans un ordre aléatoire
+        Modifie la liste des joueurs inscrits avec les éléments dans un ordre aléatoire
         """
         random.shuffle(self.players) 
 
     def reset(self):
         """
         Modifie les variables de la partie pour repartir de 0:
+            
             - le nombre d'allumettes en jeu retourne à sa valeur originale
             - choix aléatoire du joueur qui commence la partie
             - réinitialise le joueur actuel
@@ -125,20 +137,24 @@ class GameModel:
     def is_game_over(self):
         """
         Vérifie si la partie est fine 
-        Renvoie un booléen activé si il reste aucune allumettes
+        
+        Retourne:
+            - un test activé si il reste aucune allumettes (BOOL)
 
         """
         return self.nb <= 0
 
     def get_current_player(self):
         """
-        Renvoie le joueur actuel dans la liste des joueurs
+        Retourne:
+            - le joueur actuel dans la liste des joueurs (PLAYER)
 
         """
         return self.players[self.current_player]
     def get_winner(self):
         """
-        Renvoie le joueur non-actif au moment où le game_over devient True
+        Retourne:
+            - le joueur non-actif au moment où le game_over devient True (PLAYER)
 
         """
     
@@ -146,7 +162,8 @@ class GameModel:
 
     def get_loser(self):
         """
-        Renvoie le joueur actif au moment où le game_over devient True
+        Retourne:
+            - le joueur actif au moment où le game_over devient True (PLAYER)
 
         """
        

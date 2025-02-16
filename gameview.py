@@ -12,13 +12,13 @@ class GameView(tk.Tk):
             hérite de:
                 - Tkinter.TK
             argument:
-                GameController du jeu en cours
+                GameController du jeu en cours (CONTROLLER)
             attributs: 
-                - comportement de la partie en cours
-                - titre de la partie 
-                - canvas du jeu (300px sur 300px)
-                - chaîne de caractères indiquant le nom du joueur actif 
-                - cadre pour les bouttons du jeu
+                - comportement de la partie en cours (CONTROLLER)
+                - titre de la partie (STR)
+                - canvas du jeu (300px sur 300px) (CANVAS)
+                - le nom du joueur actif (STR)
+                - cadre pour les bouttons du jeu (FRAME)
            
             Rempli aussi le cadre de 3 bouttons pour les 3 actions possible
             Tous les widgets Tkinter sont assemblés et le visuel est actualisé
@@ -65,8 +65,10 @@ class GameView(tk.Tk):
     def draw_matches(self, nb):
         """
         Dessine les allumettes en fonction du nombre d'allumettes restantes
-        argument:
-            - nombre d'allumettes restantes
+        
+        Paramètre:
+            - nombre d'allumettes restantes (INT)
+            
         Pour chaque allumette restante, dessine une ligne et un oval et les place à des coordonnées fixes par rapport à leur nombre
         (première allumette en position 1, deuxième allumette en position 2, etc...)
         """
@@ -94,8 +96,7 @@ class GameView(tk.Tk):
         """
         Permet de recommencer une nouvelle partie
         Supprime tous les widgets dans le canvas
-        Actualise l'affichage
-        
+        Actualise l'affichages
         """
         # Réinitialise l'affichage pour recommencer une partie
         for widget in self.buttons_frame.winfo_children():
