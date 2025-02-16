@@ -15,6 +15,11 @@ Ordre de lecture :
  4) Valeurs retournées (avec type)
  5) Description des fonctionnalités supplémentaires de l'objet
 
+LEGACY: 
+fichiers utilisés pour le développement, mais ne seront plus utilisés pour la suite du projet
+ - allumettes.py
+ - allumettes_2_interface_graphique.py
+
 Pour lancer le jeu, éxécuter le script "gamecontroller.py"
 OU ALORS 
 Se rendre à l'emplacement du contenu du dossier dans l'invite de commande (avec la commande cd ) et éxécuter la commande python < gamecontroller.py >
