@@ -63,16 +63,13 @@ class Player:
 
 # Joueur humain
 class Human(Player):
-    def play(self):
+    def play(self, choice):
         """
         Seule fonction propre au joueur humain
-        Demande un choix entre 1 et 3 et vérifie que le choix soit valide
+        Demande un choix entre 1 et 3 
         Renvoie le nombre choisi
 
         """
-        choice = 0
-        while choice not in [1, 2, 3]: #encore important vu qu'on passe par une interface graphique ?
-            choice = int(input("Choose 1, 2, or 3 matches to remove: "))
         return choice
 
 

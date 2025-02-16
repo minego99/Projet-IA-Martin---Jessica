@@ -1,4 +1,3 @@
-
 from gamemodel import GameModel, Human, Player
 from gameview import GameView
 

@@ -42,7 +42,7 @@ class GameView(tk.Tk):
         self.buttons_frame.pack()
         
         # Création des boutons pour retirer de 1 à 3 allumettes
-        for i in range(0, 3):
+        for i in range(1, 4):
             btn = tk.Button(self.buttons_frame, text=f"Remove {i}", command=lambda n=i: self.controller.handle_human_move(n))  
             btn.pack(side=tk.LEFT) #  place chaque bouton dans la buttons_frame en les disposant horizontalement
         
@@ -100,7 +100,7 @@ class GameView(tk.Tk):
         # Réinitialise l'affichage pour recommencer une partie
         for widget in self.buttons_frame.winfo_children():
             widget.destroy()
-        for i in range(0, 3):
+        for i in range(1, 4):
             btn = tk.Button(self.buttons_frame, text=f"Remove {i}", command=lambda n=i: self.controller.handle_human_move(n))  
             btn.pack(side=tk.LEFT)
         self.update_view()
