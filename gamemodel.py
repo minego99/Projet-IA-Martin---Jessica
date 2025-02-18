@@ -83,6 +83,69 @@ class Human(Player):
         """
         return choice
 
+# AI (joueur qui apprend)
+class AI(Player):
+    def __init__(self, name):
+        super().__init__(name)
+        self.epsilon = 0.9  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
+        # α est le coefficient d'ajustement de la value-function.
+        # Détermine à quelle vitesse l'IA met à jour ses connaissances en fonction des expériences 
+        # Une petite valeur signifie que l'IA apprend lentement. Si α était trop grand, l'IA pourrait trop vite oublier les leçons passées
+        self.learning_rate = 0.01 # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        self.history = []  # Historique des transitions : à chaque tour, une transition (s, s') est ajoutée (l'état avant et après que l'adversaire ait joué). Après la partie, l'IA utilise cet historique pour ajuster la value-function (V(s))
+        self.previous_state = None  # État précédent
+        self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
+    
+    def exploit(self, possible_moves):
+        """Choisit la meilleure action qui mettra l'adversaire le plus en difficulté."""
+        # Choisit l'élément ayant la plus petite valeur selon la fonction de key
+        # Pour chaque mouvement possible move, on récupère V(move) -> valeur associée dans self.value_function
+        # Si move n'existe pas encore -> valeur 0 (état neutre)
+        return min(possible_moves, key=lambda move: self.value_function.get(move, 0)) 
+    
+    def play(self, game_state, possible_moves):
+        """Joue un coup en fonction de l'exploration/exploitation."""
+        if self.previous_state is not None:
+            self.history.append((self.previous_state, game_state)) #L'IA enregistre les transitions (état précédent -> état actuel) pour pouvoir apprendre plus tard
+        
+        if random.random() < self.epsilon: # "random.random()" génère un nombre aléatoire entre 0 et 1 et l’IA explore si le nb aléatoire est < que epsilon pcq epsilon représente la probabilité d’exploration
+            action = random.choice(possible_moves) # Exploration, l'IA choisit un mouvement aléatoire parmi possible_moves 
+        else:
+            action = self.exploit(possible_moves)  # Exploitation, pour jouer le meilleur coup
+        
+        self.previous_state = game_state  # Mise à jour de l'état précédent
+        return action
+    
+    def win(self):
+        """Ajoute la dernière transition à l'historique et réinitialise l'état précédent pour préparer une nouvelle partie."""
+        if self.previous_state is not None:
+            self.history.append((self.previous_state, "win"))
+        self.previous_state = None
+        super().win()
+    
+    def lose(self):
+        """Ajoute la dernière transition à l'historique et réinitialise l'état précédent pour préparer une nouvelle partie."""
+        if self.previous_state is not None:
+            self.history.append((self.previous_state, "lose"))
+        self.previous_state = None
+        super().lose()
+    
+    def train(self):
+        """Entrainement de l'IA : met à jour la value-function en remontant l'historique."""
+        # self.history contient la liste des transitions sous forme de tuples (état actuel, état suivant)
+        # On remonte l'historique à l'envers car l'IA apprend en backtracking -> en partant de la fin de la partie vers le début
+        for state, next_state in reversed(self.history): 
+            # valeur de état state ajustée en fonction de la valeur next_state selon la formule V(s)←V(s)+α⋅(V(s ′)−V(s))
+            self.value_function[state] = self.value_function.get(state, 0) + self.learning_rate * (self.value_function.get(next_state, 0) - self.value_function.get(state, 0)) # état state à 0 s'il n'a jamais été rencontré
+        self.history.clear()  # On vide l'historique après l'entraînement pour partir sur une nouvelle partie "propore"
+    
+    # factor -> paramètre par défaut 0.95 -> détermine de combien epsilon sera multiplié à chaque appel de la fonction -> chaque fois que la fonction est appelée, epsilon sera réduit à 95 % de sa valeur actuelle 
+    # min_epsilon -> valeur minimale par défaut 0.05 que epsilon ne peut pas descendre en dessous -> garantit que l'agent continue d'explorer un peu, même lorsque l'exploitation est privilégiée
+    def next_epsilon(self, factor=0.95, min_epsilon=0.05):
+        """Diminue epsilon progressivement pour favoriser l'exploitation."""
+        # self.epsilon * factor -> diminue epsilon
+        # max -> s'assurer que self.epsilon ne descend pas en dessous de min_epsilon. Si self.epsilon * factor est inférieur à min_epsilon, alors self.epsilon prendra la valeur de min_epsilon
+        self.epsilon = max(self.epsilon * factor, min_epsilon)
 
 # Modèle représentant la logique du jeu
 class GameModel:
