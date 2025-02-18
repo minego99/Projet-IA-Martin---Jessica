@@ -86,6 +86,15 @@ class Human(Player):
 # AI (joueur qui apprend)
 class AI(Player):
     def __init__(self, name):
+        """
+        Constructeur de l'Intelligence artificielle avec renforcement:
+        
+        -Hérite:
+            - Classe Player
+        -
+        
+        
+        """
         super().__init__(name)
         self.epsilon = 0.9  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
         # α est le coefficient d'ajustement de la value-function.
@@ -101,6 +110,8 @@ class AI(Player):
         # Choisit l'élément ayant la plus petite valeur selon la fonction de key
         # Pour chaque mouvement possible move, on récupère V(move) -> valeur associée dans self.value_function
         # Si move n'existe pas encore -> valeur 0 (état neutre)
+        
+        #get sur le résultat du move, et pas sur le move en soi
         return min(possible_moves, key=lambda move: self.value_function.get(move, 0)) 
 
     
@@ -299,6 +310,6 @@ if( __name__ == '__main__'):
     player2= AI("Bob")
     player3= AI("Randy")
     player4 = Player("Basique")
-    training(player1, player2,100000, 10)
-    training(player3, player4, 100000, 10)
+    training(player1, player2,10000000, 10)
+    training(player3, player4, 10000000, 10)
     compare_ai(player1,player2,player3)
