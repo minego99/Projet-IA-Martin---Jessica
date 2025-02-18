@@ -1,4 +1,5 @@
 from gamemodel import GameModel, Human, Player
+from gamemodel import AI
 from gameview import GameView
 
 import random
@@ -16,7 +17,7 @@ class GameController:
     def __init__(self, player1, player2, nb_matches):
         """
         Constructeur du contrôleur du jeu
-        arguments: 
+        arguments:
             - premier joueur(humain) (PLAYER)
             - deuxième joueur(IA) (PLAYER)
             - nombre d'allumettes pour le début du jeu (INT)
@@ -149,5 +150,6 @@ class GameController:
 
 if __name__ == "__main__":
     player1 = Human("Jean")
-    player2 = Player("Bot")
+    player2 = AI("Bot")
+    
     controller = GameController(player1, player2, 6)

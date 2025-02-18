@@ -35,7 +35,7 @@ class Player:
         return self.nb_wins + self.nb_loses
 
     @staticmethod
-    def play():
+    def play(possible_moves = [1,2,3]):
         """
         Comportement de l'IA à choix aléatoire
         
@@ -102,8 +102,9 @@ class AI(Player):
         # Pour chaque mouvement possible move, on récupère V(move) -> valeur associée dans self.value_function
         # Si move n'existe pas encore -> valeur 0 (état neutre)
         return min(possible_moves, key=lambda move: self.value_function.get(move, 0)) 
+
     
-    def play(self, game_state, possible_moves):
+    def play(self, game_state, possible_moves = [1,2,3]):
         """Joue un coup en fonction de l'exploration/exploitation."""
         if self.previous_state is not None:
             self.history.append((self.previous_state, game_state)) #L'IA enregistre les transitions (état précédent -> état actuel) pour pouvoir apprendre plus tard
@@ -147,9 +148,47 @@ class AI(Player):
         # max -> s'assurer que self.epsilon ne descend pas en dessous de min_epsilon. Si self.epsilon * factor est inférieur à min_epsilon, alors self.epsilon prendra la valeur de min_epsilon
         self.epsilon = max(self.epsilon * factor, min_epsilon)
 
+def training(ai1, ai2, nb_games, nb_epsilon):
+    # Train the AIs @ai1 and @ai2 during @nb_games games
+    # epsilon decrease every @nb_epsilon games
+    training_game = GameModel(12, ai1, ai2)
+    for i in range(0, nb_games):
+        if i % nb_epsilon == 0:
+            if type(ai1)==AI : ai1.next_epsilon()
+            if type(ai2)==AI : ai2.next_epsilon()
+
+        training_game.play()
+        if type(ai1)==AI : ai1.train()
+        if type(ai2)==AI : ai2.train()
+
+        training_game.reset()
+        
+def compare_ai(*ais):
+    # Print a comparison between the @ais
+    names = f"{'':4}"
+    stats1 = f"{'':4}"
+    stats2 = f"{'':4}"
+
+    for ai in ais :
+        names += f"{ai.name:^15}"
+        stats1 += f"{str(ai.nb_wins)+'/'+str(ai.nb_games):^15}"
+        stats2 += f"{f'{ai.nb_wins/ai.nb_games*100:4.4}'+'%':^15}"
+
+    print(names)
+    print(stats1)
+    print(stats2)
+    print(f"{'-'*4}{'-'*len(ais)*15}")
+
+    all_v_dict = {key : [ai.value_function.get(key,0) for ai in ais] for key in ais[0].value_function.keys()}
+    sorted_v = lambda v_dict : sorted(filter(lambda x : type(x[0])==int ,v_dict.items()))
+    for state, values in sorted_v(all_v_dict):
+        print(f"{state:2} :", end='')
+        for value in values:
+            print(f"{value:^15.3}", end='')
+        print()
 # Modèle représentant la logique du jeu
 class GameModel:
-    def __init__(self, nb_matches, player1, player2):
+    def __init__(self, nb_matches, player1, player2, displayable = False):
         """
         Constructeur du comportement d'une partie:
             
@@ -163,14 +202,31 @@ class GameModel:
             et choisi aléatoirement un des joueurs inscrits pour commencer la partie
 
         """
+        
         self.original_nb = self.nb = nb_matches
         self.players = [player1, player2]
         self.current_player = 0  # indique quel joueur joue actuellement
+        self.displayable = displayable
         for player in self.players:
             player.game = self
         self.shuffle()
-
-
+    def display(self): 
+        if self.displayable:
+            print(f"Current number of matches: {self.nb}")
+    def play(self):
+        current_player = 0
+        while self.nb > 0:
+            self.display()
+            action = self.players[current_player].play(self.nb)
+            self.step(action) 
+    
+            #check si le jeu doit se terminer
+            if self.nb <= 0:
+                self.players[current_player].win()
+                self.players[1 - current_player].lose() #1 - current_player" pour basculer entre deux joueurs où current_player est 0 ou 1. Si current_player = 0, alors 1 - 0 devient 1 et inversement
+            else:
+                #changez de joueur si le jeu continue
+                current_player = 1 - current_player
     def shuffle(self): # mélange l'ordre des joueurs 
         """
         Modifie la liste des joueurs inscrits avec les éléments dans un ordre aléatoire
@@ -237,3 +293,12 @@ class GameModel:
         Diminue le nombre d'allumettes actuel par le nombre entré par le joueur
         """
         self.nb -= action # action représente le nb de matches retirés
+        
+if( __name__ == '__main__'):
+    player1= AI("Alice")
+    player2= AI("Bob")
+    player3= AI("Randy")
+    player4 = Player("Basique")
+    training(player1, player2,100000, 10)
+    training(player3, player4, 100000, 10)
+    compare_ai(player1,player2,player3)
