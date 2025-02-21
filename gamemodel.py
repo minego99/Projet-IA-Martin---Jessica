@@ -39,6 +39,8 @@ class Player:
         """
         Comportement de l'IA à choix aléatoire
         
+        argument:
+            - nombre de coups possibles selon les règles, nécessaire pour supporter le polymorphisme avec la fonction AI.play (liste de INT)
         Retourne:
             - le nombre d'allumettes enlevées (INT)
         """
@@ -74,7 +76,8 @@ class Human(Player):
     def play(self, choice):
         """
         Seule fonction propre au joueur humain
-        
+        hérite de :
+            - Player
         Paramètre: 
             - un choix entre 1 et 3 (INT) 
         Retourne:
@@ -89,10 +92,16 @@ class AI(Player):
         """
         Constructeur de l'Intelligence artificielle avec renforcement:
         
-        -Hérite:
-            - Classe Player
-        -
-        
+        hérite de:
+            - Player (Player)
+        Argument:
+            - nom de l'IA (STR)
+        Attributs:
+            - epsilon, représente la probabilité entre l'exploitation et l'exploration (Réel)
+            - learning_rate, réprésente l'importance donnée à l'apprentissage acquis après une étape (Réel)
+            - history, liste reprenant toutes les transitions d'états parcourues par les IA (liste de tuple contenant chacun un INT)
+            - previous_state, reprend l'état précédent dans lequel était le joueur lors de son tour précédent (INT)
+            - value_function, contient toutes les possibilités dans lesquelles peut se retrouver l'IA, avec la pondération de l'état (dictionnaire: clé en STR ou INT valeurs: Réel)
         
         """
         super().__init__(name)
@@ -106,17 +115,33 @@ class AI(Player):
         self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
     
     def exploit(self, possible_moves):
-        """Choisit la meilleure action qui mettra l'adversaire le plus en difficulté."""
+        """"""
         # Choisit l'élément ayant la plus petite valeur selon la fonction de key
         # Pour chaque mouvement possible move, on récupère V(move) -> valeur associée dans self.value_function
         # Si move n'existe pas encore -> valeur 0 (état neutre)
         
         #get sur le résultat du move, et pas sur le move en soi
+        """
+        Choisit la meilleure action qui mettra l'adversaire le plus en difficulté.
+        
+        argument:
+            - actions possible selon les règles du jeu (1, 2 ou 3 allumettes retirées) (liste de INT)
+            
+        renvoie:
+            - valeur choisie parmis les 3 choix, choisi en fonction du poids le plus petit au sein de la value_function de l'IA (INT)
+        """
         return min(possible_moves, key=lambda move: self.value_function.get(move, 0)) 
 
     
     def play(self, game_state, possible_moves = [1,2,3]):
-        """Joue un coup en fonction de l'exploration/exploitation."""
+        """"""
+        """
+        adaptation de la fonction selon le comportement de l'IA: joue le coup en fonction de l'exploration/exploitation.
+        Gère aussi l'ajout de l'état précedent dans l'historique des états
+        argument:
+            - nombre d'allumettes restantes au début du tour (INT)
+            - nombre d'actions permises par les règles du jeu (liste de INT)
+        """
         if self.previous_state is not None:
             self.history.append((self.previous_state, game_state)) #L'IA enregistre les transitions (état précédent -> état actuel) pour pouvoir apprendre plus tard
         
@@ -129,37 +154,70 @@ class AI(Player):
         return action
     
     def win(self):
-        """Ajoute la dernière transition à l'historique et réinitialise l'état précédent pour préparer une nouvelle partie."""
+        """
+        Ajoute la dernière transition à l'historique et réinitialise l'état précédent pour préparer une nouvelle partie.
+        Appelle ensuite le comportement de base de la fonction win
+        
+        """
         if self.previous_state is not None:
             self.history.append((self.previous_state, "win"))
         self.previous_state = None
         super().win()
     
     def lose(self):
-        """Ajoute la dernière transition à l'historique et réinitialise l'état précédent pour préparer une nouvelle partie."""
+        """
+        Ajoute la dernière transition à l'historique et réinitialise l'état précédent pour préparer une nouvelle partie.
+        Appelle ensuite le comportement de base de la fonction lose
+        
+        """
         if self.previous_state is not None:
             self.history.append((self.previous_state, "lose"))
         self.previous_state = None
         super().lose()
     
     def train(self):
-        """Entrainement de l'IA : met à jour la value-function en remontant l'historique."""
+        """
+        Entrainement de l'IA : met à jour la value-function en remontant l'historique.
+        Application de la V-function sur l'état actuel avec tous les états précédents de l'historique
+        Nettoyage de l'historique pour ne pas garder un environnement obsolète. Les poids gardés dans la value function représentent déjà l'apprentissage passé
+        
+        """
         # self.history contient la liste des transitions sous forme de tuples (état actuel, état suivant)
         # On remonte l'historique à l'envers car l'IA apprend en backtracking -> en partant de la fin de la partie vers le début
         for state, next_state in reversed(self.history): 
             # valeur de état state ajustée en fonction de la valeur next_state selon la formule V(s)←V(s)+α⋅(V(s ′)−V(s))
             self.value_function[state] = self.value_function.get(state, 0) + self.learning_rate * (self.value_function.get(next_state, 0) - self.value_function.get(state, 0)) # état state à 0 s'il n'a jamais été rencontré
-        self.history.clear()  # On vide l'historique après l'entraînement pour partir sur une nouvelle partie "propore"
+        self.history.clear()  # On vide l'historique après l'entraînement pour partir sur une nouvelle partie "propre"
     
     # factor -> paramètre par défaut 0.95 -> détermine de combien epsilon sera multiplié à chaque appel de la fonction -> chaque fois que la fonction est appelée, epsilon sera réduit à 95 % de sa valeur actuelle 
     # min_epsilon -> valeur minimale par défaut 0.05 que epsilon ne peut pas descendre en dessous -> garantit que l'agent continue d'explorer un peu, même lorsque l'exploitation est privilégiée
     def next_epsilon(self, factor=0.95, min_epsilon=0.05):
-        """Diminue epsilon progressivement pour favoriser l'exploitation."""
+        """
+        Diminue epsilon progressivement pour favoriser l'exploitation.
+        
+        arguments:
+            - facteur d'adaptation de l'epsilon (Réel)
+            - valeur minimale de l'epsilon (Réel)
+            
+        """
         # self.epsilon * factor -> diminue epsilon
         # max -> s'assurer que self.epsilon ne descend pas en dessous de min_epsilon. Si self.epsilon * factor est inférieur à min_epsilon, alors self.epsilon prendra la valeur de min_epsilon
         self.epsilon = max(self.epsilon * factor, min_epsilon)
 
 def training(ai1, ai2, nb_games, nb_epsilon):
+    """
+    Lance une séance d'entainement entre deux joueurs
+    
+    arguments:
+        - première intelligence artificielle à entraîner (PLAYER)
+        - deuxième intelligence artificielle à entraîner (PLAYER)
+        - nombre de parties de l'entraînement (INT)
+        - fréquence d'actualisation de l'epsilon (INT)
+        
+    Crée un modèle pour l'entraînement
+    Lance autant de parties que demandé, entraîne les deux IA si possible après chaque partie
+    Et clôture les scores aorès chaque partie
+    """
     # Train the AIs @ai1 and @ai2 during @nb_games games
     # epsilon decrease every @nb_epsilon games
     training_game = GameModel(12, ai1, ai2)
@@ -176,6 +234,17 @@ def training(ai1, ai2, nb_games, nb_epsilon):
         
 def compare_ai(*ais):
     # Print a comparison between the @ais
+    """
+    Affiche les résultats de l'entraînement entre 2 IA
+    
+    arguement:
+        - Toutes les IA qui ont été entraînées (*PLAYER)
+        
+    affiche:
+        - le nom des joueurs
+        - le nombre de victoires de chaque joueur sur le nombre total de parties 
+        - la valeur de chaque poids pour chaque élément pour chaque IA
+    """
     names = f"{'':4}"
     stats1 = f"{'':4}"
     stats2 = f"{'':4}"
@@ -204,10 +273,11 @@ class GameModel:
         Constructeur du comportement d'une partie:
             
             attributs: 
-                - nombre d'allumettes en début de partie
-                - nombre d'allumettes en cours
-                - liste des joueurs engagé dans la partie
-                - joueur en cours dans la partie
+                - nombre d'allumettes en début de partie (INT)
+                - nombre d'allumettes en cours (INT)
+                - liste des joueurs engagé dans la partie (PLAYER)
+                - joueur en cours dans la partie (PLAYER)
+                - test pour décider si la partie doit être affichée par tkinter (BOOL)
            
             Rempli aussi la liste des joueurs avec les joueurs inscrits dans la partie
             et choisi aléatoirement un des joueurs inscrits pour commencer la partie
@@ -222,9 +292,18 @@ class GameModel:
             player.game = self
         self.shuffle()
     def display(self): 
+        """
+        Si la partie doit être affichée, affiche le nombre actuel d'allumettes
+        """
         if self.displayable:
             print(f"Current number of matches: {self.nb}")
     def play(self):
+        """
+        Lance la partie, et répète l'algorithme tant qu'il reste une allumette:
+            - Choisis le premier joueur à jouer (assigné aléatoirement), le fait jouer et fait avancer la partie
+            - Vérifie ensuite si la partie n'est pas finie. Dans ce cas-là, décide du gagnant et perdant
+            - sinon, change de joueur actif
+        """
         current_player = 0
         while self.nb > 0:
             self.display()
@@ -302,6 +381,9 @@ class GameModel:
     def step(self, action): # màj de l'état du jeu en modifiant nb matches restants dans le jeu
         """
         Diminue le nombre d'allumettes actuel par le nombre entré par le joueur
+        
+        argument:
+            - nombre d'allumettes enlevées (INT)
         """
         self.nb -= action # action représente le nb de matches retirés
         
