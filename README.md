@@ -23,3 +23,5 @@ fichiers utilisés pour le développement, mais ne seront plus utilisés pour la
 Pour lancer le jeu, éxécuter le script "gamecontroller.py"
 OU ALORS 
 Se rendre à l'emplacement du contenu du dossier dans l'invite de commande (avec la commande cd ) et éxécuter la commande python < gamecontroller.py >
+
+Pour lancer l'entraînement, compiler directement le script "gamemodel.py"

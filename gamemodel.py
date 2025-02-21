@@ -392,6 +392,6 @@ if( __name__ == '__main__'):
     player2= AI("Bob")
     player3= AI("Randy")
     player4 = Player("Basique")
-    training(player1, player2,10000000, 10)
-    training(player3, player4, 10000000, 10)
+    training(player1, player2,20000, 10)
+    training(player3, player4, 20000, 10)
     compare_ai(player1,player2,player3)
