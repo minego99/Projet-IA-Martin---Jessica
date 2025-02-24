@@ -124,7 +124,12 @@ class GameController:
         """
         # Mouvement IA
         current_player = self.model.get_current_player()
-        matches_taken = current_player.play() # l'IA joue
+        if(isinstance(current_player, AI)):
+            print("Smart AI play")
+            matches_taken = current_player.play(self.get_nb_matches())
+        else:
+           print("Dumb AI play")
+           matches_taken = current_player.play() 
         self.model.step(matches_taken)
         
         if self.model.is_game_over():
