@@ -114,7 +114,7 @@ class AI(Player):
         self.previous_state = None  # État précédent
         self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
     
-    def exploit(self, possible_moves):
+    def exploit(self, game_state, possible_moves):
         """"""
         # Choisit l'élément ayant la plus petite valeur selon la fonction de key
         # Pour chaque mouvement possible move, on récupère V(move) -> valeur associée dans self.value_function
@@ -130,7 +130,7 @@ class AI(Player):
         renvoie:
             - valeur choisie parmis les 3 choix, choisi en fonction du poids le plus petit au sein de la value_function de l'IA (INT)
         """
-        return min(possible_moves, key=lambda move: self.value_function.get(move, 0)) 
+        return min(possible_moves, key=lambda move: self.value_function.get(game_state - move, 0)) # game_state pour représenter état après avoir joué move et donc "self.value_function.get(game_state - move, 0)" -> récupérer la valeur associée à cet état
 
     
     def play(self, game_state, possible_moves = [1,2,3]):
@@ -148,7 +148,8 @@ class AI(Player):
         if random.random() < self.epsilon: # "random.random()" génère un nombre aléatoire entre 0 et 1 et l’IA explore si le nb aléatoire est < que epsilon pcq epsilon représente la probabilité d’exploration
             action = random.choice(possible_moves) # Exploration, l'IA choisit un mouvement aléatoire parmi possible_moves 
         else:
-            action = self.exploit(possible_moves)  # Exploitation, pour jouer le meilleur coup
+            action = self.exploit(game_state, possible_moves)  # Exploitation, pour jouer le meilleur coup
+            
         
         self.previous_state = game_state  # Mise à jour de l'état précédent
         return action
@@ -162,6 +163,7 @@ class AI(Player):
         if self.previous_state is not None:
             self.history.append((self.previous_state, "win"))
         self.previous_state = None
+        self.train()
         super().win()
     
     def lose(self):
@@ -173,6 +175,7 @@ class AI(Player):
         if self.previous_state is not None:
             self.history.append((self.previous_state, "lose"))
         self.previous_state = None
+        self.train()
         super().lose()
     
     def train(self):
@@ -392,6 +395,6 @@ if( __name__ == '__main__'):
     player2= AI("Bob")
     player3= AI("Randy")
     player4 = Player("Basique")
-    training(player1, player2,20000, 10)
-    training(player3, player4, 20000, 10)
+    training(player1, player2,200000, 10)
+    training(player3, player4, 200000, 10)
     compare_ai(player1,player2,player3)
