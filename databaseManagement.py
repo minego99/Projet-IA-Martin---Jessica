@@ -12,11 +12,11 @@ from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 
 Base = declarative_base()
     
-engine = create_engine('sqlite:///DataBaseTestAI.db')
+engine = create_engine('sqlite:///AIDataBase.db')
 
 
-class AI(Base):
-    __tablename__ = 'AI'
+class AI_Model(Base):
+    __tablename__ = 'AI_Model'
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
     Value_Function = relationship("Value_Function", back_populates="AI")
@@ -28,11 +28,12 @@ class Value_Function(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
     value = Column(Integer)
-    AI_id = Column(Integer, ForeignKey('AI.id'))
-    AI = relationship("AI", back_populates="Value_Function")
+    AI_id = Column(Integer, ForeignKey('AI_Model.id'))
+    AI = relationship("AI_Model", back_populates="Value_Function")
 
 # # Création des tables
 Base.metadata.create_all(engine)
+
 
 # # Création de la session
 Session = sessionmaker(bind=engine)
@@ -40,7 +41,7 @@ session = Session()
 
 def creation_database():
     
-    main_AI = AI(name="Matches AI", learning_rate = 0.01, epsilon = 0.9)
+    main_AI = AI_Model(name="Matches AI", learning_rate = 0.01, epsilon = 0.9)
     session.add(main_AI)
     
     lose_value = Value_Function(name="1",value = -1, AI =main_AI)
@@ -63,9 +64,9 @@ def creation_database():
 if __name__ == "__main__":
     
 
-
+    
     print(session.query(Value_Function).count())
-    print(session.query(AI).count())
-
+    print(session.query(AI_Model).count())
+    session.commit()
     # for vf in all_value_functions:
     #     print(f"ID: {vf.id}, Name: {vf.name}, Value: {vf.value}, AI ID: {vf.AI_id}")
