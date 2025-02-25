@@ -20,8 +20,9 @@ fichiers utilisés pour le développement, mais ne seront plus utilisés pour la
  - matches.py
  - matches_UI.py
 
-Pour lancer le jeu, éxécuter le script "gamecontroller.py"
+Pour lancer le jeu, éxécuter le script "main.py"
 OU ALORS 
-Se rendre à l'emplacement du contenu du dossier dans l'invite de commande (avec la commande cd ) et éxécuter la commande python < gamecontroller.py >
+Se rendre à l'emplacement du contenu du dossier dans l'invite de commande (avec la commande cd ) et éxécuter la commande python < main.py >
 
-Pour lancer l'entraînement, compiler directement le script "gamemodel.py"
+
+Pour lancer un exemple d'entraînement, compiler directement le script "gamemodel.py"
