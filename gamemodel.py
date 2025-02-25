@@ -191,7 +191,6 @@ class AI(Player):
             # valeur de état state ajustée en fonction de la valeur next_state selon la formule V(s)←V(s)+α⋅(V(s ′)−V(s))
             self.value_function[state] = self.value_function.get(state, 0) + self.learning_rate * (self.value_function.get(next_state, 0) - self.value_function.get(state, 0)) # état state à 0 s'il n'a jamais été rencontré
         self.history.clear()  # On vide l'historique après l'entraînement pour partir sur une nouvelle partie "propre"
-    
     # factor -> paramètre par défaut 0.95 -> détermine de combien epsilon sera multiplié à chaque appel de la fonction -> chaque fois que la fonction est appelée, epsilon sera réduit à 95 % de sa valeur actuelle 
     # min_epsilon -> valeur minimale par défaut 0.05 que epsilon ne peut pas descendre en dessous -> garantit que l'agent continue d'explorer un peu, même lorsque l'exploitation est privilégiée
     def next_epsilon(self, factor=0.95, min_epsilon=0.05):
@@ -234,7 +233,7 @@ def training(ai1, ai2, nb_games, nb_epsilon):
         if type(ai2)==AI : ai2.train()
 
         training_game.reset()
-        
+
 def compare_ai(*ais):
     # Print a comparison between the @ais
     """

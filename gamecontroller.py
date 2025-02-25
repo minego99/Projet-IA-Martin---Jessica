@@ -1,4 +1,4 @@
-from gamemodel import GameModel, Human, Player
+from gamemodel import GameModel, Human, Player, training
 from gamemodel import AI
 from gameview import GameView
 
@@ -37,6 +37,8 @@ class GameController:
         self.model = GameModel(nb_matches, player1, player2) # création d'une instance du modèle
         self.view = GameView(self) # création d'une instance de la vue
         
+        #entraînement préliminaire de l'IA
+        training(AI("Machine"), player2, 20000, 10)
       # Démarre le jeu
         self.start_game()
 

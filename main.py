@@ -58,7 +58,7 @@ class MainFrame(Frame):
         self.play_buttons_frame = tk.Frame(self) 
         self.play_buttons_frame.pack()
         for i in range(1, 4):
-            btn = tk.Button(self.buttons_frame, text=f"Jeu {i}", command=lambda n=i: self.set_controller(n))  
+            btn = tk.Button(self.play_buttons_frame, text=f"Jeu {i}", command=lambda n=i: self.set_controller(n))  
             btn.pack(side=tk.LEFT) 
         self.pack()
     def set_controller(self, choice):
