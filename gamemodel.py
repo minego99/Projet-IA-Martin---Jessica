@@ -1,4 +1,5 @@
 import random
+from databaseManagement import AI, Value_Function
 """
 La classe GameModel contient toute la logique des règles du jeu des allumettes
 Les valeurs renvoyées permettent à GameController de composer le statut du jeu
