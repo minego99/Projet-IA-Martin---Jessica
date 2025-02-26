@@ -63,9 +63,10 @@ def creation_database():
 
 if __name__ == "__main__":
     
-
-    
-    print(session.query(Value_Function).count())
+    new_name = session.query(Value_Function).filter_by(name= 12).first()
+    new_name.name = "win"
+ 
+    print(session.query(Value_Function).filter_by(name = "win").first().name)
     print(session.query(AI_Model).count())
     session.commit()
     # for vf in all_value_functions:

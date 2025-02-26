@@ -249,7 +249,8 @@ def training(ai1, ai2, nb_games, nb_epsilon):
         training_game.play()
         if type(ai1)==AI : ai1.train()
         if type(ai2)==AI : ai2.train()
-
+        #session.query(Value_Function).all().update()
+        session.commit()
         training_game.reset()
         
 def compare_ai(*ais):
@@ -265,6 +266,7 @@ def compare_ai(*ais):
         - le nombre de victoires de chaque joueur sur le nombre total de parties 
         - la valeur de chaque poids pour chaque élément pour chaque IA
     """
+    
     names = f"{'':4}"
     stats1 = f"{'':4}"
     stats2 = f"{'':4}"
@@ -416,4 +418,5 @@ if( __name__ == '__main__'):
     training(player1, player2,10000, 10)
     training(player3, player4, 10000, 10)
     compare_ai(player1,player2,player3)
+
     session.commit()
