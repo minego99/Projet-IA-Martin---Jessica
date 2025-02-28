@@ -1,7 +1,4 @@
 import random
-from databaseManagement import AI_Model, Value_Function
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 
 
 
@@ -11,10 +8,10 @@ Les valeurs renvoyées permettent à GameController de composer le statut du jeu
 La classe Player comprend le comportement de l'IA aléatoire, et sa classe héritée celle du joueur humain
 """
 
-Base = declarative_base()
-engine = create_engine('sqlite:///AIDataBase.db')
-Session = sessionmaker(bind=engine)
-session = Session()
+# Base = declarative_base()
+# engine = create_engine('sqlite:///AIDataBase.db')
+# Session = sessionmaker(bind=engine)
+# session = Session()
 class Player:
     def __init__(self, name, game=None):
         """
@@ -115,23 +112,27 @@ class AI(Player):
             - value_function, contient toutes les possibilités dans lesquelles peut se retrouver l'IA, avec la pondération de l'état (dictionnaire: clé en STR ou INT valeurs: Réel)
         
         """
-        database_model = session.query(AI_Model).filter_by(name = "Matches AI").first()
+        # database_model = session.query(AI_Model).filter_by(name = "Matches AI").first()
         super().__init__(name)
-        self.epsilon = database_model.epsilon  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
+        #self.epsilon = database_model.epsilon  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
+        self.epsilon = 0.9
+
         print("epsilon ", self.epsilon)
         # α est le coefficient d'ajustement de la value-function.
         # Détermine à quelle vitesse l'IA met à jour ses connaissances en fonction des expériences 
         # Une petite valeur signifie que l'IA apprend lentement. Si α était trop grand, l'IA pourrait trop vite oublier les leçons passées
-        self.learning_rate = database_model.learning_rate # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        # self.learning_rate = database_model.learning_rate # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        self.learning_rate = 0.01 # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
         print("learning rate ", self.learning_rate)
         self.history = []  # Historique des transitions : à chaque tour, une transition (s, s') est ajoutée (l'état avant et après que l'adversaire ait joué). Après la partie, l'IA utilise cet historique pour ajuster la value-function (V(s))
         self.previous_state = None  # État précédent
-        database_value_function = session.query(Value_Function).all()
+        # database_value_function = session.query(Value_Function).all()
         self.value_function = {}
-        for elem in range(0,len(database_value_function)):
-            self.value_function[database_value_function[elem].name] = database_value_function[elem].value
-        # self.value_function["win"] = -1
-        # self.value_function["lose"] = 1
+        self.value_function["lose"] = 1
+        self.value_function["win"] = -1
+        # for elem in range(0,len(database_value_function)):
+        #     self.value_function[database_value_function[elem].name] = database_value_function[elem].value
+
         
         print("value function dico ", self.value_function)
         #self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
@@ -256,7 +257,8 @@ def training(ai1, ai2, nb_games, nb_epsilon):
         if type(ai1)==AI : ai1.train()
         if type(ai2)==AI : ai2.train()
         #session.query(Value_Function).all().update()
-        session.commit()
+        print(ai1.value_function)
+        # session.commit()
         training_game.reset()
         
 def compare_ai(*ais):
@@ -294,6 +296,8 @@ def compare_ai(*ais):
         for value in values:
             print(f"{value:^15.3}", end='')
         print()
+        
+        
 # Modèle représentant la logique du jeu
 class GameModel:
     def __init__(self, nb_matches, player1, player2, displayable = False):
@@ -425,4 +429,4 @@ if( __name__ == '__main__'):
     training(player3, player4, 10000, 10)
     compare_ai(player1,player2,player3)
 
-    session.commit()
+
