@@ -6,7 +6,7 @@ Created on Tue Feb 25 11:01:12 2025
 """
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship, sessionmaker, declarative_base
-
+from gamemodel import Player, AI
 
 
 
@@ -63,9 +63,10 @@ def creation_database():
 
 if __name__ == "__main__":
     
-    new_name = session.query(Value_Function).filter_by(name= 12).first()
-    new_name.name = "win"
- 
+    new_AI = AI("test")
+    random_AI = Player("Random")
+    
+    
     print(session.query(Value_Function).filter_by(name = "win").first().name)
     print(session.query(AI_Model).count())
     session.commit()

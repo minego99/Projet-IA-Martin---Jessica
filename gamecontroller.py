@@ -1,4 +1,4 @@
-from gamemodel import GameModel, Human, Player
+from gamemodel import GameModel, Human, Player, compare_ai
 from gamemodel import AI
 from gameview import GameView
 
@@ -156,5 +156,7 @@ class GameController:
 if __name__ == "__main__":
     player1 = Human("Jean")
     player2 = AI("Bot")
-    
+    player3 = Player("dumb1")
+    player4 = Player("dumb2")
+
     controller = GameController(player1, player2, 6)

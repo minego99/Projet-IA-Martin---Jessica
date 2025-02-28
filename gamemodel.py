@@ -127,6 +127,9 @@ class AI(Player):
         self.value_function = {}
         for elem in range(0,len(database_value_function)):
             self.value_function[database_value_function[elem].name] = database_value_function[elem].value
+        # self.value_function["win"] = -1
+        # self.value_function["lose"] = 1
+        
         print("value function dico ", self.value_function)
         #self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
     
