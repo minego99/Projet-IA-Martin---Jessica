@@ -1,10 +1,20 @@
 import random
+from databaseManagement import AI_Model, Value_Function
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship, sessionmaker, declarative_base
+
+
+
 """
 La classe GameModel contient toute la logique des règles du jeu des allumettes
 Les valeurs renvoyées permettent à GameController de composer le statut du jeu
 La classe Player comprend le comportement de l'IA aléatoire, et sa classe héritée celle du joueur humain
 """
 
+Base = declarative_base()
+engine = create_engine('sqlite:///AIDataBase.db')
+Session = sessionmaker(bind=engine)
+session = Session()
 class Player:
     def __init__(self, name, game=None):
         """
@@ -24,6 +34,7 @@ class Player:
         self.game = game
         self.nb_wins = 0
         self.nb_loses = 0
+        
 
     @property
     def nb_games(self): # attribut dérivable
@@ -104,6 +115,7 @@ class AI(Player):
             - value_function, contient toutes les possibilités dans lesquelles peut se retrouver l'IA, avec la pondération de l'état (dictionnaire: clé en STR ou INT valeurs: Réel)
         
         """
+        database_model = session.query(AI_Model).filter_by(name = "Matches AI").first()
         super().__init__(name)
         self.epsilon = database_model.epsilon  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
         print("epsilon ", self.epsilon)
@@ -197,9 +209,11 @@ class AI(Player):
         """
         # self.history contient la liste des transitions sous forme de tuples (état actuel, état suivant)
         # On remonte l'historique à l'envers car l'IA apprend en backtracking -> en partant de la fin de la partie vers le début
+
         for state, next_state in reversed(self.history): 
             # valeur de état state ajustée en fonction de la valeur next_state selon la formule V(s)←V(s)+α⋅(V(s ′)−V(s))
-            self.value_function[state] = self.value_function.get(state, 0) + self.learning_rate * (self.value_function.get(next_state, 0) - self.value_function.get(state, 0)) # état state à 0 s'il n'a jamais été rencontré
+            self.value_function[state] = self.value_function.get(state, 0) + self.learning_rate * (self.value_function.get(next_state, 0) - self.value_function.get(state, 0))
+            
         self.history.clear()  # On vide l'historique après l'entraînement pour partir sur une nouvelle partie "propre"
     # factor -> paramètre par défaut 0.95 -> détermine de combien epsilon sera multiplié à chaque appel de la fonction -> chaque fois que la fonction est appelée, epsilon sera réduit à 95 % de sa valeur actuelle 
     # min_epsilon -> valeur minimale par défaut 0.05 que epsilon ne peut pas descendre en dessous -> garantit que l'agent continue d'explorer un peu, même lorsque l'exploitation est privilégiée
@@ -241,9 +255,10 @@ def training(ai1, ai2, nb_games, nb_epsilon):
         training_game.play()
         if type(ai1)==AI : ai1.train()
         if type(ai2)==AI : ai2.train()
-
+        #session.query(Value_Function).all().update()
+        session.commit()
         training_game.reset()
-
+        
 def compare_ai(*ais):
     # Print a comparison between the @ais
     """
@@ -257,6 +272,7 @@ def compare_ai(*ais):
         - le nombre de victoires de chaque joueur sur le nombre total de parties 
         - la valeur de chaque poids pour chaque élément pour chaque IA
     """
+    
     names = f"{'':4}"
     stats1 = f"{'':4}"
     stats2 = f"{'':4}"
@@ -400,10 +416,13 @@ class GameModel:
         self.nb -= action # action représente le nb de matches retirés
         
 if( __name__ == '__main__'):
+    
     player1= AI("Alice")
     player2= AI("Bob")
     player3= AI("Randy")
     player4 = Player("Basique")
-    training(player1, player2,200000, 10)
-    training(player3, player4, 200000, 10)
+    training(player1, player2,10000, 10)
+    training(player3, player4, 10000, 10)
     compare_ai(player1,player2,player3)
+
+    session.commit()
