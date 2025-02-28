@@ -2,3 +2,4 @@
 venv/
 env/
 AIDataBase.db-journal
+/AIDataBase
