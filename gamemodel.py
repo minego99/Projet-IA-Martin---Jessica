@@ -105,14 +105,24 @@ class AI(Player):
         
         """
         super().__init__(name)
-        self.epsilon = 0.9  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
+        self.epsilon = database_model.epsilon  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
+        print("epsilon ", self.epsilon)
         # α est le coefficient d'ajustement de la value-function.
         # Détermine à quelle vitesse l'IA met à jour ses connaissances en fonction des expériences 
         # Une petite valeur signifie que l'IA apprend lentement. Si α était trop grand, l'IA pourrait trop vite oublier les leçons passées
-        self.learning_rate = 0.01 # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        self.learning_rate = database_model.learning_rate # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        print("learning rate ", self.learning_rate)
         self.history = []  # Historique des transitions : à chaque tour, une transition (s, s') est ajoutée (l'état avant et après que l'adversaire ait joué). Après la partie, l'IA utilise cet historique pour ajuster la value-function (V(s))
         self.previous_state = None  # État précédent
-        self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
+        database_value_function = session.query(Value_Function).all()
+        self.value_function = {}
+        for elem in range(0,len(database_value_function)):
+            self.value_function[database_value_function[elem].name] = database_value_function[elem].value
+        # self.value_function["win"] = -1
+        # self.value_function["lose"] = 1
+        
+        print("value function dico ", self.value_function)
+        #self.value_function = {"win": 1, "lose": -1}  # Initialisation avec états finaux
     
     def exploit(self, game_state, possible_moves):
         """"""
