@@ -19,7 +19,7 @@ class AI_Model(Base):
     Value_Function = relationship("Value_Function", back_populates="AI")
     learning_rate = Column(Integer)
     epsilon = Column(Integer)
-    Value_Function = Column(String(100))
+    Value_Function = Column(String)
 
 # # Création des tables
 Base.metadata.create_all(engine)
@@ -29,12 +29,12 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 def creation_database():
-    
-    main_AI = AI_Model(name="Matches AI", learning_rate = 0.01, epsilon = 0.9)
+    temp_dico = "{'win' : 1, 'lose' : -1, '1' : 0, '2' : 0, '3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'10':0,'11':0}"
+    main_AI = AI_Model(name="Matches AI", learning_rate = 0.01, epsilon = 0.9, Value_Function = temp_dico)
     session.add(main_AI)
     session.commit()
-if __name__ == "__main__":
     
+  
    # print(type(session.query(AI_Model).filter_by(name= "Matches AI").first().Value_Function))
     # session.commit()
     # new_dico = {}
@@ -61,11 +61,7 @@ if __name__ == "__main__":
     #     print("after mapping dico: " ,temp_value_function[int(elem)-1].value)
     # for elem in range(0,len(temp_value_function)):
     #     print("nom: ", temp_value_function[int(elem)].name, " valeur: ", temp_value_function[int(elem)].value)
-    
-    temp = session.query(AI_Model).filter_by(name = "Matches AI").first().Value_Function
-    for val in temp:
-        print(val.value)
-        
+
         
 """
 transformer un dictionnaire en table d'objets Value Function
@@ -75,7 +71,9 @@ value_Function[clé (sauf pour le lose)].clé = dico[clé]
 Value_Function[clé (sauf pour le lose)].valeur = dico[valeur]
 
 """    
-
+if(__name__ == "__main__"):
+   temp = session.query(AI_Model).filter_by(name = "Matches AI").first()
+   print(temp.Value_Function)
 
     # for index in range(0, len(new_dico)):
     #     temp_value_function = session.query(AI_Model).filter_by(name= "Matches AI").first().Value_Function[index]

@@ -1,5 +1,8 @@
 import random
 
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship, sessionmaker, declarative_base
+from databaseManagement import AI_Model
 
 
 """
@@ -8,10 +11,10 @@ Les valeurs renvoyées permettent à GameController de composer le statut du jeu
 La classe Player comprend le comportement de l'IA aléatoire, et sa classe héritée celle du joueur humain
 """
 
-# Base = declarative_base()
-# engine = create_engine('sqlite:///AIDataBase.db')
-# Session = sessionmaker(bind=engine)
-# session = Session()
+Base = declarative_base()
+engine = create_engine('sqlite:///AIDataBase.db')
+Session = sessionmaker(bind=engine)
+session = Session()
 class Player:
     def __init__(self, name, game=None):
         """
@@ -112,24 +115,23 @@ class AI(Player):
             - value_function, contient toutes les possibilités dans lesquelles peut se retrouver l'IA, avec la pondération de l'état (dictionnaire: clé en STR ou INT valeurs: Réel)
         
         """
-        # database_model = session.query(AI_Model).filter_by(name = "Matches AI").first()
+        database_model = session.query(AI_Model).filter_by(name = "Matches AI").first()
         super().__init__(name)
-        #self.epsilon = database_model.epsilon  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
-        self.epsilon = 0.9
+        self.epsilon = database_model.epsilon  # Probabilité d'exploration :  l'IA va choisir 90% du temps une action aléatoire (exploration)
+         #self.epsilon = 0.9
 
         print("epsilon ", self.epsilon)
         # α est le coefficient d'ajustement de la value-function.
         # Détermine à quelle vitesse l'IA met à jour ses connaissances en fonction des expériences 
         # Une petite valeur signifie que l'IA apprend lentement. Si α était trop grand, l'IA pourrait trop vite oublier les leçons passées
-        # self.learning_rate = database_model.learning_rate # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
-        self.learning_rate = 0.01 # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        self.learning_rate = database_model.learning_rate # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
+        #self.learning_rate = 0.01 # Taux d'apprentissage : l'IA va choisir  10% du temps la meilleure action connue (exploitation)
         print("learning rate ", self.learning_rate)
         self.history = []  # Historique des transitions : à chaque tour, une transition (s, s') est ajoutée (l'état avant et après que l'adversaire ait joué). Après la partie, l'IA utilise cet historique pour ajuster la value-function (V(s))
         self.previous_state = None  # État précédent
-        # database_value_function = session.query(Value_Function).all()
-        self.value_function = {}
-        self.value_function["lose"] = 1
-        self.value_function["win"] = -1
+        self.value_function = eval(database_model.Value_Function)
+        # self.value_function["lose"] = 1
+        # self.value_function["win"] = -1
         # for elem in range(0,len(database_value_function)):
         #     self.value_function[database_value_function[elem].name] = database_value_function[elem].value
 
@@ -256,11 +258,13 @@ def training(ai1, ai2, nb_games, nb_epsilon):
         training_game.play()
         if type(ai1)==AI : ai1.train()
         if type(ai2)==AI : ai2.train()
-        #session.query(Value_Function).all().update()
-        print(ai1.value_function)
-        # session.commit()
+        # session.query(AI_Model).first().update()
         training_game.reset()
-        
+    temp = session.query(AI_Model).filter_by(name = "Matches AI").first()
+    temp.Value_Function = str(ai1.value_function)
+    temp.learning_rate = ai1.learning_rate
+    temp.epsilon = ai1.epsilon
+    print("dico: ", temp.Value_Function)     
 def compare_ai(*ais):
     # Print a comparison between the @ais
     """
