@@ -11,74 +11,114 @@ from gamecontroller import GameController
 
 import random
 from tkinter import *
-from tkinter import messagebox
 import tkinter as tk
 
 
-class App(Tk):
+class App(tk.Tk):
     """
-    Objet qui sert de template pour le canvas
-    
-    hérite de:
+    Fenêtre principale de l'application
+    Hérite de:
         - tkinter (Tkinter)
-    paramètres:
+    Paramètres:
         - titre de la fenêtre (STRING)
         - taille de la fenêtre (float2)
-    arguments:
+    Arguments:
         - taille minimale, égale à la taille de la fenêtre en paramètre (float2)
         - possibilité de redimentionner la fenêtre (vrai pour x et y par défaut)(BOOL,BOOL)
         - titre de la fenêtre, égal à celui inséré en paramètre (float2)
-        - 
     """
     def __init__(self, mainTitle, size):
-        super().__init__()      
+        super().__init__()
         self.minsize(*size)
-        self.resizable(True,True) 
+        self.resizable(True, True)
         self.title(mainTitle)
-class MainFrame(Frame):
+
+
+class MainFrame(tk.Frame):
     """
     Objet de sélection du jeu
-    
     hérite de:
         - Frame, qui est un widget de tkinter (tkinter)
-    paramètre:
-        - template du canvas
-    arguments:
+    Paramètres:
+        - container (tk.Tk): fenêtre principale dans laquelle le frame est affiché
+    Arguments:
         - texte principal de l'image (STR)
         - cadre contenant les bouttons de sélection des jeux (Widget)
         - les 3 bouttons redirigeant vers les 3 jeux (Widget)
-    Tous les widgets sont aussi affichés
-    
     """
     def __init__(self, container):
         super().__init__(container)
-        options = {"pady":10}
-        self.label = Label(self, text="Choisissez le jeu: ")
-        self.label.pack(**options)
-        self.play_buttons_frame = tk.Frame(self) 
-        self.play_buttons_frame.pack()
-        for i in range(1, 4):
-            btn = tk.Button(self.play_buttons_frame, text=f"Jeu {i}", command=lambda n=i: self.set_controller(n))  
-            btn.pack(side=tk.LEFT) 
+        self.container = container
         self.pack()
-    def set_controller(self, choice):
+
+        # Titre
+        self.label = tk.Label(self, text="Projet IA", font=("Arial", 12))
+        self.label.pack(pady=10)
+
+        # Frames
+        self.play_buttons_frame = tk.Frame(self)
+        self.play_buttons_frame.pack()
+
+        # Jeux
+        self.games = ["Allumettes", "Cubee", "PixelKart"]
+        for game in self.games:
+            self.create_game_card(game)
+
+    def create_game_card(self, game_name):
         """
+        Création de cards avec bouton "Jouer"
+        paramètre:
+            - nom du jeu (STR) 
+        """
+        frame = tk.Frame(self.play_buttons_frame, relief="solid", borderwidth=1)
+        frame.pack(side="left", padx=10, pady=10, expand=True, fill="both")
+
+        label = tk.Label(frame, text=game_name, font=("Arial", 12, "bold"))
+        label.pack(pady=10)
+
+        # Bouton de lancement du jeu
+        button = tk.Button(frame, text="Jouer", bg="lightblue", fg="black", font=("Arial", 12, "bold"),
+                           command=lambda: self.launch_game(game_name))
+        button.pack(pady=10, padx=10)
+
+    def launch_game(self, game_name):
+        """       
         Lance le jeu en fonction du boutton choisi
         paramètre:
-            - choix du joueur (1 à 3)(INT)
+            - nom du jeu à lancer (STR) 
         """
-        if(choice == 1):
-            controller = GameController(player1, player2, 6)
-        elif(choice == 2):
-         #lancer cubee
-             print()
-        else:
-         #lancer les voitures
-             print()
-        
+        if game_name == "Allumettes":
+            self.launch_match_game()
+        elif game_name == "Cubee":
+            self.launch_cubee()
+        elif game_name == "PixelKart":
+            self.launch_pixelkart()
+
+    def launch_match_game(self):
+        """
+        Lance le jeu des allumettes
+        Initialise un joueur humain et une IA, puis crée un GameController
+        """
+        player1 = Human("Jean")
+        player2 = AI("Bot")
+        controller = GameController(player1, player2, 6)
+        print("Allumettes")
+
+    def launch_cubee(self):
+        """
+        Lance Cubee
+        """
+        print("Cubee")
+
+    def launch_pixelkart(self):
+        """
+        Lance PixelKart
+        """
+        print("PixelKart")
+
+
 if __name__ == "__main__":
-    player1 = Human("Jean")
-    player2 = AI("Bot")
     app = App("Sélection de jeux", [300, 50])
     frame = MainFrame(app)
     app.mainloop()
+
