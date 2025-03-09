@@ -148,6 +148,7 @@ class AI(Player):
         Choisit la meilleure action qui mettra l'adversaire le plus en difficulté.
         
         argument:
+            - nombre d'allumettes restantes avant le lancement de l'exploit (INT)
             - actions possible selon les règles du jeu (1, 2 ou 3 allumettes retirées) (liste de INT)
             
         renvoie:
@@ -164,6 +165,8 @@ class AI(Player):
         argument:
             - nombre d'allumettes restantes au début du tour (INT)
             - nombre d'actions permises par les règles du jeu (liste de INT)
+        renvoie:
+            le nombre d'allumettes enlevées lors du choix de l'IA (INT)
         """
         if self.previous_state is not None:
             self.history.append((self.previous_state, game_state)) #L'IA enregistre les transitions (état précédent -> état actuel) pour pouvoir apprendre plus tard
