@@ -1,6 +1,6 @@
-from gamemodel import GameModel, Human, Player, training
-from gamemodel import AI
-from gameview import GameView
+from .gamemodel import GameModel, Human, Player, training
+from .gamemodel import AI
+from .gameview import GameView
 
 import random
 import tkinter as tk

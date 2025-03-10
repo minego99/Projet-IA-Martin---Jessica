@@ -4,10 +4,15 @@ Created on Mon Feb 24 17:22:00 2025
 
 @author: marti
 """
-from gamemodel import GameModel, Human, Player
-from gamemodel import AI
-from gameview import GameView
-from gamecontroller import GameController
+import matches.gamemodel
+
+from matches.gamemodel import GameModel, Human, Player
+from matches.gamemodel import AI
+from matches.gameview import GameView
+from matches.gamecontroller import GameController
+from cubee.gamemodel import CubeeGameModel, CubeeHuman, CubeePlayer
+from cubee.gameview import CubeeGameView
+from cubee.gamecontroller import CubeeGameController
 
 import random
 from tkinter import *

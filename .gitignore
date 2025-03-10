@@ -3,3 +3,5 @@ venv/
 env/
 AIDataBase.db-journal
 /AIDataBase
+/matches/__pycache__
+/cubee/__pycache__
