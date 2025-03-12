@@ -17,6 +17,7 @@ class CubeeGameModel():
         self.displayable = displayable
         print(self.player1_pos, self.player2_pos)
         print(self.grid[self.player2_pos[0]][self.player2_pos[1]])
+        self.shuffleplayers()
     def shuffleplayers(self):
         random.shuffle(self.players)        
     def get_current_player(self):
@@ -65,24 +66,47 @@ class CubeeGameModel():
     def play(self):
         self.current_player = 0
         while(not self.is_over()):
-           # self.move(self.current_player, movement)
             self.step()
             if(self.is_over()):
                 self.get_winner()
-    # def move(self, player, movement):
-    #     """
-    #     incrémenter player1pos ou player2pos
-    #     """
-    #     if(player == self.player1):         
-    #         if(movement == "up"):
-    #         elif(movement == "left"):
-    #         elif(movement == "right"):
-    #         else:
-    #     else:
-    #         if(movement == "up"):
-    #         elif(movement == "left"):
-    #         elif(movement == "right"):
-    #         else:
+    def move(self, player, movement):
+        """
+        incrémenter player1pos ou player2pos
+        """
+        
+        position_temp = [0,0]        
+        if(movement == "down"):
+            position_temp[1] += 1
+        elif(movement == "left"):
+            position_temp[0] -= 1
+        elif(movement == "right"):
+            position_temp[0] += 1
+        else:
+            position_temp[1] -= 1
+
+        if(self.players[self.get_current_player()] == self.playerA):
+             position_temp[0] += self.player1_pos[0]
+             position_temp[1] += self.player1_pos[1]
+        else:
+             position_temp[0] += self.player2_pos[0]
+             position_temp[1] += self.player2_pos[1]
+             #coord X doit être >= 0 et < dimensions
+             #coord Y doit être >= 0 et < dimensions
+        if(position_temp[0] < self.dimension and position_temp[0] >= 0 and position_temp[1] < self.dimension and position_temp[1] >= 0): 
+            print("mouvement", position_temp)
+            #vérification pour rester DANS les dimensions du plateau de jeu
+            if(self.players[self.get_current_player()] == self.playerA):
+                self.player1_pos = position_temp
+            else:
+                self.player2_pos = position_temp
+            return True
+        else:
+            #ajouter l'obtention d'un autre mouvement
+            if(self.players[self.get_current_player()] == self.playerA):
+                print("player1 bloqué: ",  self.player1_pos)
+            else:
+                print("player2 bloqué: ", self.player2_pos)
+            return False
 class CubeePlayer():
     def __init__(self, player_name):
         self.player_name = player_name
@@ -94,6 +118,9 @@ class CubeeHuman(CubeePlayer):
     def __init__(self):
         print()
         
-
-newModel = CubeeGameModel(5, 0, 0)
-print(newModel.get_winner())
+playertempA = CubeePlayer("bot")
+playertempB = CubeePlayer("chaussure")
+newModel = CubeeGameModel(5, playertempA, playertempB)
+newModel.move(playertempA, "up")
+newModel.move(playertempA, "left")
+newModel.move(playertempA, "up")
