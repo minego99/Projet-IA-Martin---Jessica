@@ -92,13 +92,20 @@ class CubeeGameModel():
              position_temp[1] += self.player2_pos[1]
              #coord X doit être >= 0 et < dimensions
              #coord Y doit être >= 0 et < dimensions
+             #vérification pour rester DANS les dimensions du plateau de jeu
+
         if(position_temp[0] < self.dimension and position_temp[0] >= 0 and position_temp[1] < self.dimension and position_temp[1] >= 0): 
             print("mouvement", position_temp)
-            #vérification pour rester DANS les dimensions du plateau de jeu
             if(self.players[self.get_current_player()] == self.playerA):
-                self.player1_pos = position_temp
+                if(self.grid[position_temp[0]][position_temp[1]] != 2):
+                    self.player1_pos = position_temp
+                else:
+                    print("case déjà occupée")
             else:
-                self.player2_pos = position_temp
+                if(self.grid[position_temp[0]][position_temp[1]] != 1):
+                    self.player2_pos = position_temp
+                else:
+                    print("case déjà occupée")
             return True
         else:
             #ajouter l'obtention d'un autre mouvement
@@ -117,10 +124,41 @@ class CubeePlayer():
 class CubeeHuman(CubeePlayer):
     def __init__(self):
         print()
-        
-playertempA = CubeePlayer("bot")
-playertempB = CubeePlayer("chaussure")
-newModel = CubeeGameModel(5, playertempA, playertempB)
-newModel.move(playertempA, "up")
-newModel.move(playertempA, "left")
-newModel.move(playertempA, "up")
+def example_movement():
+    playertempA = CubeePlayer("bot")
+    playertempB = CubeePlayer("chaussure")
+    newModel = CubeeGameModel(5, playertempA, playertempB)
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "right")
+    newModel.step()
+    newModel.move(playertempA, "up")
+    newModel.step()
+    newModel.move(playertempA, "up")
+    newModel.step()
+    newModel.move(playertempA, "up")
+    newModel.step()
+    newModel.move(playertempA, "up")
+    newModel.step()
+    newModel.move(playertempA, "right")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    newModel.move(playertempA, "down")
+    newModel.step()
+    print(newModel.grid)
+    newModel.get_score()
+    
+    
+if(__name__ == '__main__'):
+    example_movement()
