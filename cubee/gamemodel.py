@@ -76,13 +76,13 @@ class CubeeGameModel():
         
         position_temp = [0,0]        
         if(movement == "down"):
-            position_temp[1] += 1
-        elif(movement == "left"):
-            position_temp[0] -= 1
-        elif(movement == "right"):
             position_temp[0] += 1
-        else:
+        elif(movement == "left"):
             position_temp[1] -= 1
+        elif(movement == "right"):
+            position_temp[1] += 1
+        else:
+            position_temp[0] -= 1
 
         if(self.players[self.get_current_player()] == self.playerA):
              position_temp[0] += self.player1_pos[0]
@@ -114,6 +114,7 @@ class CubeeGameModel():
             else:
                 print("player2 bloqué: ", self.player2_pos)
             return False
+            
 class CubeePlayer():
     def __init__(self, player_name):
         self.player_name = player_name
