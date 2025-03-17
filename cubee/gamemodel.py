@@ -69,6 +69,9 @@ class CubeeGameModel():
             self.step()
             if(self.is_over()):
                 self.get_winner()
+    def  switch_player(self):
+        self.current_player = 1 - self.current_player
+     
     def move(self, player, movement):
         """
         incrémenter player1pos ou player2pos
@@ -123,7 +126,8 @@ class CubeePlayer():
         
 
 class CubeeHuman(CubeePlayer):
-    def __init__(self):
+    def __init__(self, player_name):
+        self.player_name = player_name
         print()
 def example_movement():
     playertempA = CubeePlayer("bot")

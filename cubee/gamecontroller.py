@@ -1,19 +1,19 @@
-import sys
+#import sys
 import os
 import tkinter as tk
-
+import random
 # Importation des modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from cubee.gamemodel import CubeeGameModel
+from cubee.gamemodel import CubeeGameModel, CubeePlayer, CubeeHuman
 from cubee.gameview import CubeeGameView
 
 class CubeeGameController:
-    def __init__(self, root, dimension=5):
+    def __init__(self, root,playerA, playerB, dimension=5):
         self.root = root
         self.dimension = dimension
-        self.playerA = "P1"
-        self.playerB = "P2"
+        self.playerA = playerA
+        self.playerB = playerB
         self.model = CubeeGameModel(self.dimension, self.playerA, self.playerB)
         self.view = CubeeGameView(root, self, self.dimension)
         self.start_game()
@@ -34,18 +34,22 @@ class CubeeGameController:
         return grid_display
 
     def handle_player_move(self, direction):
-        """Déplacement du joueur en cours"""
+        """Déplacement du joueur en cours"""        
         current_player = self.model.players[self.model.get_current_player()]
-        
-        if self.model.move(current_player, direction):  # Si mouvement est valide
-            self.model.step()  # Nouvelle position
-            self.update_view()
-            
-            if self.model.is_over():  # Vérification si partie terminée
-                self.handle_end_game()
-            else:
-                self.model.switch_player()  # Changement de joueur après un tour valide
-
+        if(type(current_player) == CubeeHuman):
+            print("Human")
+            if self.model.move(current_player, direction):  # Si mouvement est valide
+                self.model.step()  # Nouvelle position
+                self.update_view()
+        else:
+            print("BOT")
+            if self.model.move(current_player, random.choice(["up","down","left","right"])):
+                self.model.step()  # Nouvelle position
+                self.update_view()
+        if self.model.is_over():  # Vérification si partie terminée
+            self.handle_end_game()
+        else:
+            self.model.switch_player()  # Changement de joueur après un tour valide
     def handle_ai_move(self):
         """Déplacement de l'IA si activée"""
         if self.model.is_ai_turn():
@@ -67,5 +71,7 @@ class CubeeGameController:
 if __name__ == '__main__':
     root = tk.Tk()
     root.title("Cubee Game")
-    controller = CubeeGameController(root)
+    playerA = CubeePlayer("Alice")
+    playerB = CubeeHuman ("Bob")
+    controller = CubeeGameController(root, playerA, playerB)
     root.mainloop()
