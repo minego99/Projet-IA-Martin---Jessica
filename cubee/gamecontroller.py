@@ -1,9 +1,9 @@
-#import sys
+import sys
 import os
 import tkinter as tk
 import random
 # Importation des modules
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from cubee.gamemodel import CubeeGameModel, CubeePlayer, CubeeHuman
 from cubee.gameview import CubeeGameView
@@ -38,9 +38,11 @@ class CubeeGameController:
         current_player = self.model.players[self.model.get_current_player()]
         if(type(current_player) == CubeeHuman):
             print("Human")
-            if self.model.move(current_player, direction):  # Si mouvement est valide
-                self.model.step()  # Nouvelle position
-                self.update_view()
+            valid_move = self.model.move(current_player, direction)
+            self.model.step()  # Nouvelle position
+            self.update_view()
+            valid_move = self.model.move(current_player, direction)
+            # vérifier séparément la validité du move, et ne pas switch de player si c'est invalide
         else:
             print("BOT")
             if self.model.move(current_player, random.choice(["up","down","left","right"])):

@@ -48,8 +48,10 @@ class CubeeGameModel():
     def is_over(self):
         for row in self.grid:
             if(0 in row):
+                print("game not over")
                 return False
-        return False
+        print("game over")
+        return True
     def step(self):
         self.grid[self.player1_pos[0]][self.player1_pos[1]] = 1
         self.grid[self.player2_pos[0]][self.player2_pos[1]] = 2
@@ -71,12 +73,7 @@ class CubeeGameModel():
                 self.get_winner()
     def  switch_player(self):
         self.current_player = 1 - self.current_player
-     
-    def move(self, player, movement):
-        """
-        incrémenter player1pos ou player2pos
-        """
-        
+    def get_movement(self, movement):
         position_temp = [0,0]        
         if(movement == "down"):
             position_temp[0] += 1
@@ -86,38 +83,58 @@ class CubeeGameModel():
             position_temp[1] += 1
         else:
             position_temp[0] -= 1
-
+        
+        return position_temp
+    def is_movement_valid(self, movement):
+        
+        position_temp = self.get_movement(movement)
+        
         if(self.players[self.get_current_player()] == self.playerA):
              position_temp[0] += self.player1_pos[0]
              position_temp[1] += self.player1_pos[1]
         else:
              position_temp[0] += self.player2_pos[0]
              position_temp[1] += self.player2_pos[1]
-             #coord X doit être >= 0 et < dimensions
-             #coord Y doit être >= 0 et < dimensions
-             #vérification pour rester DANS les dimensions du plateau de jeu
-
-        if(position_temp[0] < self.dimension and position_temp[0] >= 0 and position_temp[1] < self.dimension and position_temp[1] >= 0): 
-            print("mouvement", position_temp)
-            if(self.players[self.get_current_player()] == self.playerA):
-                if(self.grid[position_temp[0]][position_temp[1]] != 2):
-                    self.player1_pos = position_temp
-                else:
-                    print("case déjà occupée")
-            else:
-                if(self.grid[position_temp[0]][position_temp[1]] != 1):
-                    self.player2_pos = position_temp
-                else:
-                    print("case déjà occupée")
+        if(position_temp[0] < self.dimension and position_temp[0] >= 0 and position_temp[1] < self.dimension and position_temp[1] >= 0):     
             return True
         else:
-            #ajouter l'obtention d'un autre mouvement
-            if(self.players[self.get_current_player()] == self.playerA):
-                print("player1 bloqué: ",  self.player1_pos)
-            else:
-                print("player2 bloqué: ", self.player2_pos)
             return False
-            
+    def move(self, player, movement):
+        """
+        Vérifie si le mouvement est valide avant de l'appliquer
+        """
+        if not self.is_movement_valid(movement):
+            print(f"Le mouvement '{movement}' est invalide.")
+            return False
+    
+        position_temp = self.get_movement(movement)
+    
+        if self.players[self.get_current_player()] == self.playerA:
+            new_pos = [self.player1_pos[0] + position_temp[0], self.player1_pos[1] + position_temp[1]]
+            if self.grid[new_pos[0]][new_pos[1]] != 2:
+                self.player1_pos = new_pos
+            else:
+                print("Case déjà occupée par l'adversaire")
+                return False
+        else:
+            new_pos = [self.player2_pos[0] + position_temp[0], self.player2_pos[1] + position_temp[1]]
+            if self.grid[new_pos[0]][new_pos[1]] != 1:
+                self.player2_pos = new_pos
+            else:
+                print("Case déjà occupée par l'adversaire")
+                return False
+    
+        return True  # Mouvement effectué avec succès
+    
+    def move_with_retry(self, player):
+        movement = input("Entrez un mouvement (up, down, left, right) : ").strip().lower()
+        
+        if self.move(player, movement):
+            print(f"Mouvement '{movement}' validé !")
+        else:
+            print("Mouvement invalide, veuillez réessayer.")
+            self.move_with_retry(player)  # Récursion si mouvement invalide
+
 class CubeePlayer():
     def __init__(self, player_name):
         self.player_name = player_name
