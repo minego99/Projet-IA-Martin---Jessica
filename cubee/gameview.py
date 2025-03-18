@@ -6,7 +6,7 @@ class CubeeGameView:
         self.controller = controller
         self.dimensions = dimensions
         self.cells = []
-        self.initial_positions = {"P1": None, "P2": None}  # Stockage des positions initiales
+        self.player_positions = {"P1": None, "P2": None}  # Stockage des positions actuelles
         
         self.canvas = tk.Frame(root)
         self.canvas.pack()
@@ -30,10 +30,9 @@ class CubeeGameView:
             self.cells.append(row_cells)
     
     def draw_player(self, player, position):
-        """Dessin du bonhomme joueur uniquement sur la case de départ"""
+        """Dessin du bonhomme joueur uniquement sur sa position actuelle"""
         row, col = position
         cell_canvas = self.cells[row][col]
-        cell_canvas.delete("player")  # Supprimer uniquement le bonhomme
         
         color = "#9b59b6" if player == "P1" else "#3498db"
         
@@ -44,33 +43,36 @@ class CubeeGameView:
         cell_canvas.create_oval(22, 22, 26, 28, fill="black", tags="player")  # Œil gauche
         cell_canvas.create_oval(34, 22, 38, 28, fill="black", tags="player")  # Œil droit
         
-        # Bouche 
+        # Bouche
         cell_canvas.create_arc(22, 35, 38, 45, start=180, extent=180, style=tk.ARC, outline="black", width=2, tags="player")
     
     def update_view(self, cases):
         """Màj du plateau avec personnages et coloriage des cases"""
+        new_positions = {"P1": None, "P2": None}
+        
         for row in range(self.dimensions):
             for col in range(self.dimensions):
                 cell_canvas = self.cells[row][col]
                 
                 if cases[row][col] == "P1":
-                    if self.initial_positions["P1"] is None:
-                        self.initial_positions["P1"] = (row, col)  # Enregistrer la position initiale
-                    cell_canvas.config(bg="#9b59b6")  # Colorier la case du joueur 1
-                
+                    new_positions["P1"] = (row, col)
+                    cell_canvas.config(bg="#9b59b6")  # Coloriage case joueur 1
                 elif cases[row][col] == "P2":
-                    if self.initial_positions["P2"] is None:
-                        self.initial_positions["P2"] = (row, col)  # Enregistrer la position initiale
-                    cell_canvas.config(bg="#3498db")  # Colorier la case du joueur 2
+                    new_positions["P2"] = (row, col)
+                    cell_canvas.config(bg="#3498db")  # Coloriage case joueur 2
                 
-                elif cell_canvas["bg"] not in ("#9b59b6", "#3498db"):
-                    cell_canvas.config(bg="white")  # Garder les cases vides en blanc
-
-        # Dessiner les joueurs uniquement sur leur case initiale
-        if self.initial_positions["P1"]:
-            self.draw_player("P1", self.initial_positions["P1"])
-        if self.initial_positions["P2"]:
-            self.draw_player("P2", self.initial_positions["P2"])
+        # Suppression ancien dessin du joueur
+        for player, old_pos in self.player_positions.items():
+            if old_pos and old_pos != new_positions[player]:
+                self.cells[old_pos[0]][old_pos[1]].delete("player")
+        
+        # Dessin des joueurs sur leur nouvelle position
+        for player, new_pos in new_positions.items():
+            if new_pos:
+                self.draw_player(player, new_pos)
+                
+        # Màj positions joueurs
+        self.player_positions = new_positions.copy()
     
     def draw_endgame(self, message):
         """Message de fin de partie"""
@@ -79,13 +81,9 @@ class CubeeGameView:
     
     def reset_game(self):
         """Réinitialisation de l'affichage du plateau"""
-        self.initial_positions = {"P1": None, "P2": None}  # Réinitialiser les positions initiales
+        self.player_positions = {"P1": None, "P2": None}  # Réinitialisation des positions
         for row in range(self.dimensions):
             for col in range(self.dimensions):
                 cell_canvas = self.cells[row][col]
                 cell_canvas.delete("all")
-                cell_canvas.config(bg="white")  # Rétablir le fond blanc
-
-
-
-
+                cell_canvas.config(bg="white")  # Rétabissemnt du fond blanc
