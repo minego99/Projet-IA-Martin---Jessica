@@ -1,7 +1,27 @@
 import tkinter as tk
 
+"""
+La classe contient tout le nécessaire pour l'affichage du jeu.
+Elle prend en compte les paramètres de la classe gamecontroller pour les interpréter et les appliquer dans le package tkinters
+"""
 class CubeeGameView:
+    
     def __init__(self, root, controller, dimensions=5):
+        """
+        Constructeur de la gestion graphique du jeu:
+
+            argument:
+                - Source de la fenêtre (TKINTER.TK)
+                - Game controller de la partie (CONTROLLER)
+                - Dimensions du tableau (par défaut =5) (INT)
+            attributs: 
+                - Plateau de jeu, vide au début mais rempli procéduralement ([[STR]])
+                - Positions des deux joueurs en début de partie ({STR : NONE, STR: NONE})
+                - canvas du jeu (CANVAS)
+            Dessine le plateau de jeus
+            Prépare les événements en cas d'inputs du joueur
+
+        """
         self.root = root
         self.controller = controller
         self.dimensions = dimensions
@@ -20,7 +40,9 @@ class CubeeGameView:
         self.root.bind("<Right>", lambda event: self.controller.handle_player_move("right"))
     
     def draw_terrain(self):
-        """Création du plateau"""
+        """
+        Création du plateau, affiche des cases blanches avec un écart standard en fonction des dimensions insérées dans le constructeur de la partie
+        """
         for row in range(self.dimensions):
             row_cells = []
             for col in range(self.dimensions):
@@ -30,7 +52,12 @@ class CubeeGameView:
             self.cells.append(row_cells)
     
     def draw_player(self, player, position):
-        """Dessin du bonhomme joueur uniquement sur sa position actuelle"""
+        """
+        Affiche l'icône du joueur actif à l'emplacement actuel du joueur actif
+        arguments:
+            - Le joueur actif
+            - La position du joueur actif
+        """
         row, col = position
         cell_canvas = self.cells[row][col]
         
@@ -47,7 +74,17 @@ class CubeeGameView:
         cell_canvas.create_arc(22, 35, 38, 45, start=180, extent=180, style=tk.ARC, outline="black", width=2, tags="player")
     
     def update_view(self, cases):
-        """Màj du plateau avec personnages et coloriage des cases"""
+        """
+        Màj du plateau avec personnages et coloriage des cases
+        
+        argument:
+            - plateau de jeu ([[STR]])
+            
+        Cherche la position des joueurs et colorie la case où ils se situent
+        Affiche la position des nouveaux joueurs
+        Enlève l'icône des joueurs de leur ancienne positions
+        
+        """
         new_positions = {"P1": None, "P2": None}
         
         for row in range(self.dimensions):
@@ -75,12 +112,21 @@ class CubeeGameView:
         self.player_positions = new_positions.copy()
     
     def draw_endgame(self, message):
-        """Message de fin de partie"""
+        """
+        Message de fin de partie
+        argument:
+            - message à afficher (STR)
+        
+        """
         end_label = tk.Label(self.root, text=message, font=("Arial", 14))
         end_label.pack()
     
     def reset_game(self):
-        """Réinitialisation de l'affichage du plateau"""
+        """
+        Réinitialisation de l'affichage du plateau
+        Les joueurs sont enlevés du plateau
+        toutes les cellules du plateau redeviennent blanches
+        """
         self.player_positions = {"P1": None, "P2": None}  # Réinitialisation des positions
         for row in range(self.dimensions):
             for col in range(self.dimensions):
