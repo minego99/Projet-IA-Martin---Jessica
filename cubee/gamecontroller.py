@@ -18,9 +18,12 @@ class CubeeGameController:
         self.view = CubeeGameView(root, self, self.dimension)
         self.start_game()
 
+
     def start_game(self):
         """Démarrage de la partie"""
-        self.update_view()
+        if not isinstance(self.model.get_current_player(), CubeeHuman):
+            self.handle_random_ai_move()
+
 
     def update_view(self):
         """Màj affichage en fonction du modèle"""
@@ -32,26 +35,34 @@ class CubeeGameController:
         grid_display[self.model.player1_pos[0]][self.model.player1_pos[1]] = "P1"
         grid_display[self.model.player2_pos[0]][self.model.player2_pos[1]] = "P2"
         return grid_display
-
+    def handle_random_ai_move(self):
+        if(self.model.move(self.model.get_current_player(),random.choice(["up","left","down","right"]))):
+            self.model.step()
+            self.model.switch_player()
+            self.update_view()
+            if self.model.is_over():  # Vérification si partie terminée
+                self.handle_end_game()
+        else: 
+            self.handle_random_ai_move()
     def handle_player_move(self, direction):
-        """Déplacement du joueur en cours"""        
+        """Déplacement du joueur en cours, humain"""        
         current_player = self.model.players[self.model.get_current_player()]
+        print("current_player before switch: " ,type(current_player))
+
         if(type(current_player) == CubeeHuman):
             print("Human")
-            valid_move = self.model.move(current_player, direction)
-            self.model.step()  # Nouvelle position
+            if(self.model.move(current_player, direction)):
+                self.model.switch_player()
+            self.model.step()  # changer les valeurs du terrain
             self.update_view()
-            valid_move = self.model.move(current_player, direction)
-            # vérifier séparément la validité du move, et ne pas switch de player si c'est invalide
-        else:
-            print("BOT")
-            if self.model.move(current_player, random.choice(["up","down","left","right"])):
-                self.model.step()  # Nouvelle position
-                self.update_view()
+            
         if self.model.is_over():  # Vérification si partie terminée
             self.handle_end_game()
-        else:
-            self.model.switch_player()  # Changement de joueur après un tour valide
+        current_player = self.model.players[self.model.get_current_player()]
+        if(type(current_player) != CubeeHuman):
+            self.handle_random_ai_move()
+              # Changement de joueur après un tour valide
+    
     def handle_ai_move(self):
         """Déplacement de l'IA si activée"""
         if self.model.is_ai_turn():

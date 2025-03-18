@@ -53,6 +53,7 @@ class CubeeGameModel():
         print("game over")
         return True
     def step(self):
+        print("step")
         self.grid[self.player1_pos[0]][self.player1_pos[1]] = 1
         self.grid[self.player2_pos[0]][self.player2_pos[1]] = 2
     def reset(self):
@@ -71,7 +72,8 @@ class CubeeGameModel():
             self.step()
             if(self.is_over()):
                 self.get_winner()
-    def  switch_player(self):
+    def switch_player(self):        
+        print("SWITCH, joueur actuel: ", self.current_player)
         self.current_player = 1 - self.current_player
     def get_movement(self, movement):
         position_temp = [0,0]        
@@ -126,14 +128,7 @@ class CubeeGameModel():
     
         return True  # Mouvement effectué avec succès
     
-    def move_with_retry(self, player):
-        movement = input("Entrez un mouvement (up, down, left, right) : ").strip().lower()
-        
-        if self.move(player, movement):
-            print(f"Mouvement '{movement}' validé !")
-        else:
-            print("Mouvement invalide, veuillez réessayer.")
-            self.move_with_retry(player)  # Récursion si mouvement invalide
+
 
 class CubeePlayer():
     def __init__(self, player_name):
@@ -146,6 +141,10 @@ class CubeeHuman(CubeePlayer):
     def __init__(self, player_name):
         self.player_name = player_name
         print()
+        
+class CubeeAI(CubeePlayer):
+    def __init__(self, AI_name):
+        self.AI_name = AI_name
 def example_movement():
     playertempA = CubeePlayer("bot")
     playertempB = CubeePlayer("chaussure")
