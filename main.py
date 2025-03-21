@@ -113,6 +113,11 @@ class MainFrame(tk.Frame):
         """
         Lance Cubee
         """
+        root = tk.Tk()
+        root.title("Cubee Game")
+        playerA = CubeePlayer("Alice")
+        playerB = CubeeHuman ("Bob")
+        controller = CubeeGameController(root, playerA, playerB)
         print("Cubee")
 
     def launch_pixelkart(self):

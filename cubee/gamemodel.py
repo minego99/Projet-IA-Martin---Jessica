@@ -28,7 +28,9 @@ class CubeeGameModel():
 
         """
         self.dimension = dimension
-        self.grid = [[0] * self.dimension for i in range(self.dimension)]
+        self.grid = [[0] * self.dimension for i in range(self.dimension)]      
+        self.enclosure_matrix_A = [[False] * self.dimension for i in range(self.dimension)]
+        self.enclosure_matrix_B = [[False] * self.dimension for i in range(self.dimension)]
         self.grid[0][0] = 1
         self.grid[self.dimension-1][self.dimension-1] = 2
         print(self.grid)
@@ -212,7 +214,13 @@ class CubeeGameModel():
     
         return True  # Mouvement effectué avec succès
     
-
+    def enclosure_search(self):
+        queue = []
+        if(self.get_current_player() == self.playerA):
+            for col,row in self.grid:
+                if(self.grid(col) ==  1):
+                    queue.append(col)
+        print()
 
 class CubeePlayer():
     def __init__(self, player_name):
@@ -285,7 +293,6 @@ def example_movement():
     newModel.step()
     print(newModel.grid)
     newModel.get_score()
-    
     
 if(__name__ == '__main__'):
     example_movement()
