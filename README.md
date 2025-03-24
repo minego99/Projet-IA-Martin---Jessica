@@ -16,7 +16,7 @@ fichiers utilisés pour le développement, mais ne seront plus utilisés pour la
  - matches.py
  - matches_UI.py
 
-Pour lancer le jeu, éxécuter le script "main.py"
+Pour lancer le jeu, éxécuter le script "main.py" et choisir le premier jeu
 OU ALORS 
 Se rendre à l'emplacement du contenu du dossier dans l'invite de commande (avec la commande cd ) et éxécuter la commande python < main.py >
 
@@ -30,7 +30,7 @@ Règles du jeu :
 
 Cubee :
 
--> Pour l'instant, le jeu se lance depuis le gamecontroller.
+Pour lancer le jeu, éxécuter le script "main.py" et choisir le deuxième jeu
 
 Règle du jeu :
 But :
