@@ -31,18 +31,21 @@ class CubeeGameModel():
         self.grid = [[0] * self.dimension for i in range(self.dimension)]      
         self.enclosure_matrix_A = [[False] * self.dimension for i in range(self.dimension)]
         self.enclosure_matrix_B = [[False] * self.dimension for i in range(self.dimension)]
+        # self.enclosure_matrix_A[0][0] = True
+        # self.enclosure_matrix_B[self.dimension-1][self.dimension-1] = True
+
         self.grid[0][0] = 1
         self.grid[self.dimension-1][self.dimension-1] = 2
-        print(self.grid)
         self.players = [playerA, playerB]
         self.current_player = 0
         self.playerA = playerA
         self.playerB = playerB
         self.player1_pos = [0, 0]
         self.player2_pos = [dimension-1, dimension-1]
+        self.queue_playerA = []
+        self.queue_playerB = []
+
         self.displayable = displayable
-        print(self.player1_pos, self.player2_pos)
-        print(self.grid[self.player2_pos[0]][self.player2_pos[1]])
         self.shuffleplayers()
     def shuffleplayers(self):
         """
@@ -102,7 +105,6 @@ class CubeeGameModel():
         """
         for row in self.grid:
             if(0 in row):
-                print("game not over")
                 return False
         print("game over")
         return True
@@ -110,9 +112,11 @@ class CubeeGameModel():
         """
         Modifie les cases où les joueurs se situent par leur valeur respective
         """
-        print("step")
         self.grid[self.player1_pos[0]][self.player1_pos[1]] = 1
         self.grid[self.player2_pos[0]][self.player2_pos[1]] = 2
+        self.enclosure_search()
+     
+        
     def reset(self):
         """
         Réinitialise le plateau de jeu, les positions des deux joueurs, le joueur actif et mélange l'ordre des deux joueurs
@@ -191,6 +195,7 @@ class CubeeGameModel():
             - Si le mouvement est invalide, FALSE (BOOL)
             - Si aucun cas d'erreur n'a été rencontré, TRUE (BOOL)
         """
+        
         if not self.is_movement_valid(movement):
             print(f"Le mouvement '{movement}' est invalide.")
             return False
@@ -213,14 +218,75 @@ class CubeeGameModel():
                 return False
     
         return True  # Mouvement effectué avec succès
-    
+    def enable_locked_cases(self, current_player):
+        """
+        Bloque les cases inaccessibles pour le joueur adverse
+        argument:
+            - le joueur actuel (PLAYER)
+        SI le joueur actif est le joueur A, donne toutes les cases inaccessibles au joueur B
+        Et inversément si le joueur actif est le joueur Bs
+        """
+        # if(current_player == self.playerA):
+        #     for i, row in enumerate(self.enclosure_matrix_A):
+        #         for j, elem in enumerate(row):
+        #             if elem == False:
+        #                 print(f"Coordonnées A: ({i}, {j}) - Valeur: {elem}")
+        #                 self.grid[i][j] = 2
+        # else:
+        #     for i, row in enumerate(self.enclosure_matrix_B):
+        #         for j, elem in enumerate(row):
+        #             if elem == False:
+        #                 print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
+        #                 self.grid[i][j] = 1
+        print("wip function")
     def enclosure_search(self):
-        queue = []
-        if(self.get_current_player() == self.playerA):
-            for col,row in self.grid:
-                if(self.grid(col) ==  1):
-                    queue.append(col)
-        print()
+        """
+        Gère la logique BFS, crée un point de départ (= départ du joueur actif) et active toutes les cases visitables.
+        une case visitable rend ses cases adjacentes visitables
+        """
+        if self.players[self.get_current_player()] == self.playerA:
+            queue = [(0, 0)]
+            temp_matrix = self.enclosure_matrix_A
+            claimed_value = 1
+        else:
+            queue = [(self.dimension - 1, self.dimension - 1)]
+            temp_matrix = self.enclosure_matrix_B
+            claimed_value = 2
+    
+        while queue:
+            case = queue.pop()  # Défilement de la file
+            x, y = case  # Récupération des coordonnées
+    
+            print("Processing:", case)
+    
+            # Vérification des 4 directions
+            if y - 1 >= 0:  # LEFT
+                self.check_enclosure((x, y - 1), queue, claimed_value, temp_matrix)
+            if y + 1 < self.dimension:  # RIGHT
+                self.check_enclosure((x, y + 1), queue, claimed_value, temp_matrix)
+            if x - 1 >= 0:  # UP
+                self.check_enclosure((x - 1, y), queue, claimed_value, temp_matrix)
+            if x + 1 < self.dimension:  # DOWN
+                self.check_enclosure((x + 1, y), queue, claimed_value, temp_matrix)
+    
+            print("Queue:", queue)
+        print("matrix_A:" , self.enclosure_matrix_A)
+        print("matrix_B:" , self.enclosure_matrix_B)
+
+    def check_enclosure(self, case, queue, claimed_value, temp_matrix):
+        """
+        Vérification de l'état de la case envoyée en paramètre. Modifie la matrice du joueur adverse et ajoute la case suivante à la file d'attente
+        arguments:
+            - case à vérifier [INT,INT]
+            - file d'attente des cases à vérifier [(INT,INT)]
+            - la valeur de l'adversaire sur le plateau (INT)
+            - la matrice contenant toutes les cases visitables par le joueur
+        """
+        x, y = case
+        if not temp_matrix[x][y] and (self.grid[x][y] == claimed_value or self.grid[x][y] == 0):
+            temp_matrix[x][y] = True
+            queue.append(case)
+
 
 class CubeePlayer():
     def __init__(self, player_name):
@@ -295,4 +361,6 @@ def example_movement():
     newModel.get_score()
     
 if(__name__ == '__main__'):
+    #example_movement()
+    testmodel = CubeeGameModel(5, "Alice", "Bob")
     example_movement()

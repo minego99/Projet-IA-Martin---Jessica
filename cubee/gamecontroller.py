@@ -74,6 +74,7 @@ class CubeeGameController:
         if(self.model.move(self.model.get_current_player(),random.choice(["up","left","down","right"]))):
             self.model.step()
             self.model.switch_player()
+            self.model.enable_locked_cases(self.model.players[self.model.get_current_player()])
             self.update_view()
             if self.model.is_over():  # Vérification si partie terminée
                 self.handle_end_game()
@@ -95,7 +96,7 @@ class CubeeGameController:
                 self.model.switch_player()
             self.model.step()  # changer les valeurs du terrain
             self.update_view()
-            
+            self.model.enable_locked_cases(current_player)
         if self.model.is_over():  # Vérification si partie terminée
             self.handle_end_game()
         current_player = self.model.players[self.model.get_current_player()]
