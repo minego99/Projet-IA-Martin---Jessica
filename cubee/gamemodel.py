@@ -21,6 +21,8 @@ class CubeeGameModel():
                 - le compteur du joueur actuel [INT]
                 - la position du premier joueur qui commence toujours en haut à gauche [INT, INT]
                 - la position du deuxième joueur qui commence toujours en bas à droite [INT, INT]
+                - les deux matrices des enclos, qui indiquent quel joueur a des cases inatteignables [[BOOL]]
+                
                 
             Rempli aussi la liste des joueurs avec les joueurs inscrits dans la partie
             et choisi aléatoirement un des joueurs inscrits pour commencer la partie
@@ -42,8 +44,7 @@ class CubeeGameModel():
         self.playerB = playerB
         self.player1_pos = [0, 0]
         self.player2_pos = [dimension-1, dimension-1]
-        self.queue_playerA = []
-        self.queue_playerB = []
+
 
         self.displayable = displayable
         self.shuffleplayers()
@@ -322,45 +323,8 @@ class CubeeAI(CubeePlayer):
                 - nom de l'IA (STR)
         """
         self.AI_name = AI_name
-def example_movement():
-    """
-    fonction de test visant à vérifier les tests de validité des déplacement
-    """
-    playertempA = CubeePlayer("bot")
-    playertempB = CubeePlayer("chaussure")
-    newModel = CubeeGameModel(5, playertempA, playertempB)
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "right")
-    newModel.step()
-    newModel.move(playertempA, "up")
-    newModel.step()
-    newModel.move(playertempA, "up")
-    newModel.step()
-    newModel.move(playertempA, "up")
-    newModel.step()
-    newModel.move(playertempA, "up")
-    newModel.step()
-    newModel.move(playertempA, "right")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    newModel.move(playertempA, "down")
-    newModel.step()
-    print(newModel.grid)
-    newModel.get_score()
+
     
 if(__name__ == '__main__'):
     #example_movement()
     testmodel = CubeeGameModel(5, "Alice", "Bob")
-    example_movement()
