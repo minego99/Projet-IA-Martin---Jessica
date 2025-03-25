@@ -1,3 +1,4 @@
+import pytest
 import random
 
 """
@@ -239,7 +240,7 @@ class CubeeGameModel():
         #             if elem == False:
         #                 print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
         #                 self.grid[i][j] = 1
-        print("wip function")
+        # print("wip function")
     def enclosure_search(self):
         """
         Gère la logique BFS, crée un point de départ (= départ du joueur actif) et active toutes les cases visitables.
@@ -258,7 +259,7 @@ class CubeeGameModel():
             case = queue.pop()  # Défilement de la file
             x, y = case  # Récupération des coordonnées
     
-            print("Processing:", case)
+           # print("Processing:", case)
     
             # Vérification des 4 directions
             if y - 1 >= 0:  # LEFT
@@ -270,10 +271,22 @@ class CubeeGameModel():
             if x + 1 < self.dimension:  # DOWN
                 self.check_enclosure((x + 1, y), queue, claimed_value, temp_matrix)
     
-            print("Queue:", queue)
+        #     print("Queue:", queue)
         print("matrix_A:" , self.enclosure_matrix_A)
         print("matrix_B:" , self.enclosure_matrix_B)
 
+        if self.players[self.get_current_player()] == self.playerA:
+            for i, row in enumerate(self.enclosure_matrix_A):
+                for j, elem in enumerate(row):
+                    if elem == False:
+                        print(f"Coordonnées A: ({i}, {j}) - Valeur: {elem}")
+                        self.grid[i][j] = 2
+        else:
+            for i, row in enumerate(self.enclosure_matrix_B):
+                for j, elem in enumerate(row):
+                    if elem == False:
+                        print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
+                        self.grid[i][j] = 1
     def check_enclosure(self, case, queue, claimed_value, temp_matrix):
         """
         Vérification de l'état de la case envoyée en paramètre. Modifie la matrice du joueur adverse et ajoute la case suivante à la file d'attente
@@ -324,7 +337,107 @@ class CubeeAI(CubeePlayer):
         """
         self.AI_name = AI_name
 
+
+def test_check_enclosure_empty_board():
+    game = CubeeGameModel(3,"P1","P2")
+    game.board = [[0,0,0],
+                  [0,0,0],
+                  [0,0,2]]
+    game.player_turn = 1
+    game.enclosure_search()
+    assert game.board == [[0,0,0],
+                         [0,0,0],
+                         [0,0,2]]
+
+def test_check_enclosure_simple_case():
+    game = CubeeGameModel(3,"P1", "P2")
+    game.grid = [[1,1,0],
+                  [1,1,1],
+                  [1,2,2]]
+    game.player_turn = 1
+    game.enclosure_search()
     
+    print(game.grid)
+    assert game.grid == [[1,1,1],
+                         [1,1,1],
+                         [1,2,2]]
+
+def test_check_enclosure_no_enclosed_area():
+    game = CubeeGameModel(3,"P1", "P2")
+    game.grid = [[1,1,1],
+                  [1,0,0],
+                  [1,1,2]]
+    game.player_turn = 1
+    game.enclosure_search()
+    assert game.grid == [[1,1,1],
+                         [1,0,0],
+                         [1,1,2]]
+
+def test_check_enclosure_multiple_spaces():
+    game = CubeeGameModel(4,"P1", "P2")
+    game.grid = [[1,1,1,1],
+                  [1,0,0,1],
+                  [1,0,1,1],
+                  [1,1,2,2]]
+    game.player_turn = 1
+    game.enclosure_search()
+    assert game.grid == [[1,1,1,1],
+                         [1,1,1,1],
+                         [1,1,1,1],
+                         [1,1,2,2]]
+
+def test_check_enclosure_multiple_enclosure():
+    game = CubeeGameModel(4,"P1", "P2")
+    game.grid = [[1,1,0,0],
+                  [1,1,0,1],
+                  [0,1,1,2],
+                  [1,1,2,2]]
+    game.player_turn = 1
+    game.enclosure_search()
+    assert game.grid == [[1,1,1,1],
+                         [1,1,1,1],
+                         [1,1,1,2],
+                         [1,1,2,2]]
+
+                         
+tests = [
+    ([[1,1,1],[1,2,1],[1,2,2]],
+     1,
+     [[1,1,1],[1,2,1],[1,2,2]]),
+
+    ([[1,0,0],[1,1,1],[1,2,2]],
+     1,
+     [[1,1,1],[1,1,1],[1,2,2]]),
+
+    ([[1,1,1],[1,0,2],[1,1,2]],
+     1,
+     [[1,1,1],[1,0,2],[1,1,2]]),
+
+    ([[1,2,0],[1,2,0],[1,2,2]],
+     2,
+     [[1,2,2],[1,2,2],[1,2,2]]),
+
+    ([[1,0,1,1],[1,0,0,1],[1,1,1,2],[1,1,1,2]],
+     1,
+     [[1,1,1,1],[1,1,1,1],[1,1,1,2],[1,1,1,2]]),
+
+    ([[1,0,1,1],[1,0,0,1],[1,1,0,1],[1,1,2,2]],
+     2,
+     [[1,0,1,1],[1,0,0,1],[1,1,0,1],[1,1,2,2]]),
+
+    ([[1,1,0,0],[1,1,0,1],[0,1,2,2],[1,1,2,2]],
+     1,
+     [[1,1,0,0],[1,1,0,1],[1,1,2,2],[1,1,2,2]]),
+]   
+
+@pytest.mark.parametrize("board,turn,expected", tests)
+def test_enclosure(board, turn, expected):
+		game = CubeeGameModel("P1", "P2", size=len(board))
+		game.board = board
+		game.player_turn = turn
+		game.check_enclosure()
+		assert game.board == expected, f"{board} =({turn})=> {game.board}. But expected : {expected} "
 if(__name__ == '__main__'):
     #example_movement()
-    testmodel = CubeeGameModel(5, "Alice", "Bob")
+    testmodel = CubeeGameModel(3, "Alice", "Bob")
+    test_check_enclosure_multiple_enclosure()
