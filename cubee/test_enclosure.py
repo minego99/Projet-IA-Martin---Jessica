@@ -94,9 +94,12 @@ tests = [
 ]   
 
 @pytest.mark.parametrize("board,turn,expected", tests)
-def test_enclosure(board, turn, expected):
-		game = CubeeGameModel("P1", "P2", size=len(board))
-		game.board = board
-		game.player_turn = turn
+def test_enclosure(grid, turn, expected):
+
+		game = CubeeGameModel("P1", "P2", dimension=len(grid))
+		game.grid = grid
+		game.current_player = turn
 		game.check_enclosure()
-		assert game.board == expected, f"{board} =({turn})=> {game.board}. But expected : {expected} "
+		assert game.grid == expected, f"{grid} =({turn})=> {game.grid}. But expected : {expected} "
+test_check_enclosure_multiple_enclosure()
+# newModel = CubeeGameModel(5, 'A', 'B')
