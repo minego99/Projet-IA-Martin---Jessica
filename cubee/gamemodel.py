@@ -1,5 +1,6 @@
 import pytest
 import random
+#import gameDAO
 
 """
 La classe GameModel contient toute la logique des règles du jeu cubee
@@ -317,7 +318,33 @@ class CubeeGameModel():
             temp_matrix[x][y] = True
             queue.append(case)
 
-
+    # def data_to_dto(self, action_values):
+    #     temp = 0
+    #     state_id = ""
+    #     state_id += str(self.player1_pos[0])+str(self.player1_pos[1]) + ";"
+    #     state_id += str(self.player2_pos[0])+str(self.player2_pos[1]) + ";"
+    #     state_id += str(self.current_player) + ";"
+    #     for i, elem in enumerate(self.grid):
+    #         for j, elem in enumerate(self.grid):
+    #             state_id += str(self.grid[i][j])
+    #     return{
+    #     'state_id' : state_id,
+    #     'up_value' : action_values[0],
+    #     'down_value' : action_values[1],
+    #     'left_value' : action_values[2],
+    #     'right_value' : action_values[3]
+    #         }
+    # @staticmethod
+    # def dto_to_data(data: dict):
+    #     return   CubeeGameModel(
+    #         state = data.get('state_id'),
+    #         up_value = data.get('up_value'),
+    #         down_value = data.get('down_value'),
+    #         left_value = data.get('left_value'),
+    #         right_value = data.get('right_value')
+    #         )
+        
+        
 class CubeePlayer():
     def __init__(self, player_name):
         """
@@ -459,4 +486,5 @@ def test_enclosure(board, turn, expected):
 if(__name__ == '__main__'):
     #example_movement()
     testmodel = CubeeGameModel(4, "Alice", "Bob")
+   # testmodel.data_to_dto()
     test_check_enclosure_multiple_enclosure()
