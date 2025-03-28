@@ -372,15 +372,56 @@ class CubeeHuman(CubeePlayer):
         
         
 class CubeeAI(CubeePlayer):
-    def __init__(self, AI_name):
+    def __init__(self, AI_name, qtable, alpha=0.1, gamma=0.9, epsilon=0.1):
         """
-        Constructeur du profil du joueur IA intelligent:
-            argument:
-                - nom de l'IA (STR)
-            attributs: 
-                - nom de l'IA (STR)
+        Constructeur du profil du joueur IA intelligent.
+        
+        arguments:
+            - AI_name: nom de l'IA (STR)
+            - qtable: instance de la QTable pour la gestion des valeurs Q
+            - alpha: taux d'apprentissage (FLOAT)
+            - gamma: importance des récompenses futures (FLOAT)
+            - epsilon: taux d'exploration (FLOAT)
         """
-        self.AI_name = AI_name
+    super().__init__(AI_name)  
+    self.qtable = qtable
+    self.alpha = alpha  # Learning rate
+    self.gamma = gamma  # Récompenses futures
+    self.epsilon = epsilon  # Exploration vs exploitation
+
+    def choose_action(self, state):
+        """Sélectionne l'action en fonction de la Q-table ou exploration."""
+        q_values = self.qtable.get_q_values(state)
+        if random.uniform(0, 1) < self.epsilon:
+            return random.choice(["up", "down", "left", "right"])
+        return max(q_values, key=q_values.get)
+    
+    def update_q_table(self, state, action, reward, new_state):
+        """Met à jour la Q-table après un mouvement."""
+        q_values = self.qtable.get_q_values(state)
+        max_future_q = max(self.qtable.get_q_values(new_state).values())
+        
+        # Calcul de la nouvelle valeur Q
+        new_q_value = (1 - self.alpha) * q_values[action] + self.alpha * (reward + self.gamma * max_future_q)
+        q_values[action] = new_q_value
+        
+        self.qtable.update_q_value(state, q_values)
+
+    def calculate_reward(self, board, player_pos, opponent_pos):
+        """
+        Calcule la récompense basée sur le mouvement effectué par l'IA.
+        """
+        reward = 0
+        # Pénalité si le mouvement sort des limites
+        if player_pos[0] < 0 or player_pos[0] >= len(board) or player_pos[1] < 0 or player_pos[1] >= len(board):
+            reward -= 10  # Pénalité pour sortie
+
+        # Récompense pour les cases prises
+        player_score = sum(row.count(1) for row in board)  # Nombre de cases du joueur
+        opponent_score = sum(row.count(2) for row in board)  # Nombre de cases de l'adversaire
+        reward += (player_score - opponent_score)  # Récompense immédiate
+
+        return reward
 
 
 def test_check_enclosure_empty_board():
