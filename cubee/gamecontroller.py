@@ -5,7 +5,7 @@ import random
 # Importation des modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from cubee.gamemodel import CubeeGameModel, CubeePlayer, CubeeHuman
+from cubee.gamemodel import CubeeGameModel, CubeePlayer, CubeeHuman, QTable, CubeeAI
 from cubee.gameview import CubeeGameView
 
 """
@@ -37,6 +37,25 @@ class CubeeGameController:
         self.model = CubeeGameModel(self.dimension, self.playerA, self.playerB)
         self.view = CubeeGameView(root, self, self.dimension)
         self.start_game()
+    
+    def get_state(self):
+        """
+        Génère la clé d'état pour la Q-table.
+        """
+        x1, y1 = self.positions["P1"] # Récupère les coordonnées (x1, y1) du joueur P1 à partir du dico self.positions
+        x2, y2 = self.positions["P2"] # Récupère les coordonnées (x2, y2) du joueur P2
+
+        # self.board : le plateau jeu sous forme d’une liste de listes (matrice)
+        # for row in self.board : itère sur chaque ligne du plateau
+        # "".join(row) : convertit une ligne (liste de caractères) en une chaîne de caractères
+        # "".join(...) : concatène toutes les lignes ensemble en une seule chaîne board_str
+        board_str = "".join("".join(row) for row in self.board)
+
+        # f"{x1}{y1}{x2}{y2}{self.current_player}{board_str}" : crée une chaîne unique combinant :
+        # Les coordonnées des deux joueurs (x1, y1, x2, y2).
+        # Le joueur actuel (self.current_player).
+        # L’état du plateau (board_str).
+        return f"{x1}{y1}{x2}{y2}{self.current_player}{board_str}"
 
 
     def start_game(self):
