@@ -1,5 +1,6 @@
 import pytest
 import random
+import sqlite3
 #import gameDAO
 
 """
@@ -343,7 +344,58 @@ class CubeeGameModel():
     #         left_value = data.get('left_value'),
     #         right_value = data.get('right_value')
     #         )
-        
+
+class QTable:
+    def __init__(self, db_path="qtable.db"): # Initialise l'objet QTable avec un fichier de base de données SQLite 
+        """
+        Gestion de la base de données pour la Q-table.
+        """
+        self.conn = sqlite3.connect(db_path) #  Établit une connexion avec la base de données SQLite (qtable.db)
+        self.cursor = self.conn.cursor() # Crée un curseur permettant d'exécuter des requêtes SQL
+        self.create_table() #  Appelle une méthode qui crée la table qtable si elle n'existe pas encore
+    
+    def create_table(self):
+        """
+        Création de la table si elle n'existe pas.
+        """
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS qtable (
+                # Définition de state (état du jeu) comme clé primaire :
+                state TEXT PRIMARY KEY,
+                # Initialisation des valeurs Q pour chaque action (up, down, left, right) à 0 :
+                up REAL DEFAULT 0,
+                down REAL DEFAULT 0,
+                left REAL DEFAULT 0,
+                right REAL DEFAULT 0
+            )
+        ''')
+        self.conn.commit() # Applique la modification en enregistrant la création de la table
+    
+    def get_q_values(self, state):
+        """
+        Récupération des valeurs Q pour un état donné.
+        """
+        self.cursor.execute("SELECT * FROM qtable WHERE state = ?", (state,)) # Cherche l’état state dans la table qtable
+        row = self.cursor.fetchone() # Récupère la première ligne trouvée (ou None si l’état n’existe pas
+        if row: # Si état trouvé (row existe), on retourne les valeurs up, down, left, right sinon on retourne des valeurs Q initialisées à 0
+            return {"up": row[1], "down": row[2], "left": row[3], "right": row[4]}
+        else:
+            return {"up": 0, "down": 0, "left": 0, "right": 0}
+    
+    def update_q_value(self, state, action, new_value):
+        """
+        Mise à jour de la valeur Q.
+        """
+        # INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) → Insère un nouvel état avec des valeurs Q à 0 si l’état n’existe pas encore
+        # ON CONFLICT(state) DO UPDATE SET {} = ?.format(action) → Si l’état existe déjà, met à jour l’action spécifiée (up, down, left, right) avec new_value
+        self.cursor.execute("INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) ON CONFLICT(state) DO UPDATE SET {} = ?".format(action), (state, new_value))
+        self.conn.commit() #  Sauvegarde la modification dans la base de données
+    
+    def close(self):
+        """
+        Fermeture de la connextion à la BDD et libération des ressources liées à la connexion SQLite
+        """
+        self.conn.close()        
         
 class CubeePlayer():
     def __init__(self, player_name):
@@ -369,8 +421,7 @@ class CubeeHuman(CubeePlayer):
                 - nom du joueur(STR)
         """
         self.player_name = player_name
-        
-        
+
 class CubeeAI(CubeePlayer):
     def __init__(self, AI_name, qtable, alpha=0.1, gamma=0.9, epsilon=0.1):
         """
@@ -392,19 +443,23 @@ class CubeeAI(CubeePlayer):
     def choose_action(self, state):
         """Sélectionne l'action en fonction de la Q-table ou exploration."""
         q_values = self.qtable.get_q_values(state)
-        if random.uniform(0, 1) < self.epsilon:
+        if random.uniform(0, 1) < self.epsilon: # si nombre entre 0 et 1 est inférieur à epsilon, l'IA prend une action au hasard
             return random.choice(["up", "down", "left", "right"])
-        return max(q_values, key=q_values.get)
+        return max(q_values, key=q_values.get) # sinon, l'IA exploite la Q-table et choisit l'action avec la plus haute valeur Q
     
     def update_q_table(self, state, action, reward, new_state):
         """Met à jour la Q-table après un mouvement."""
         q_values = self.qtable.get_q_values(state)
-        max_future_q = max(self.qtable.get_q_values(new_state).values())
+        max_future_q = max(self.qtable.get_q_values(new_state).values()) # cherche la meilleure valeur Q de l'état suivant new_state : représente l'estimation de la meilleure récompense future
         
         # Calcul de la nouvelle valeur Q
+        # Met à jour la valeur Q avec l'équation du Q-learning :
+        # (1 - alpha) * q_values[action] : ancienne valeur légèrement diminuée
+        # reward + gamma * max_future_q : nouvelle estimation de la récompense
+        # alpha : contrôle l'importance de l'ancienne valeur vs la nouvelle estimation
         new_q_value = (1 - self.alpha) * q_values[action] + self.alpha * (reward + self.gamma * max_future_q)
         q_values[action] = new_q_value
-        
+        # Màj BDD avec nouvelle valeur Q
         self.qtable.update_q_value(state, q_values)
 
     def calculate_reward(self, board, player_pos, opponent_pos):
@@ -413,6 +468,11 @@ class CubeeAI(CubeePlayer):
         """
         reward = 0
         # Pénalité si le mouvement sort des limites
+        # 0 : lignes (haut - bas) et 1 : colonnes (gauche - droite)
+        # player_pos[0] < 0 → Le joueur dépasse la limite haute (-1)
+        # player_pos[0] >= len(board) → Le joueur dépasse la limite basse (5 si le tableau fait 5 lignes)
+        # player_pos[1] < 0 → Le joueur dépasse la limite gauche (-1)
+        # player_pos[1] >= len(board[0]) → Le joueur dépasse la limite droite (5 si le tableau fait 5 colonnes)
         if player_pos[0] < 0 or player_pos[0] >= len(board) or player_pos[1] < 0 or player_pos[1] >= len(board):
             reward -= 10  # Pénalité pour sortie
 
