@@ -1,5 +1,6 @@
 import pytest
 import random
+import gameDAO
 #import gameDAO
 
 """
@@ -33,10 +34,6 @@ class CubeeGameModel():
         """
         self.dimension = dimension
         self.grid = [[0] * self.dimension for i in range(self.dimension)]      
-        self.enclosure_matrix_A = [[False] * self.dimension for i in range(self.dimension)]
-        self.enclosure_matrix_B = [[False] * self.dimension for i in range(self.dimension)]
-        # self.enclosure_matrix_A[0][0] = True
-        # self.enclosure_matrix_B[self.dimension-1][self.dimension-1] = True
 
         self.grid[0][0] = 1
         self.grid[self.dimension-1][self.dimension-1] = 2
@@ -63,21 +60,11 @@ class CubeeGameModel():
             l'indice du joueur ayant la main dans la partie (INT)
         """
         return self.current_player
-    
     def get_score(self):
-        """
-        Calcule le nombre de cases capturées par le joueur A et B
-        renvoie:
-            - la somme des cases capturées par le joueur 1 et par le joueur 2 ([INT, INT])
-        """
-        player1_score = 0
-        player2_score = 0
-        for i in self.grid:
-            player1_score += i.count(1)
-            player2_score += i.count(2)
-        
-        print("player1_score: ",player1_score, "player2_score: ", player2_score)
+        player1_score = sum(row.count(1) for row in self.grid)
+        player2_score = sum(row.count(2) for row in self.grid)
         return [player1_score, player2_score]
+
     
     def get_winner(self):
         """
@@ -216,7 +203,9 @@ class CubeeGameModel():
             return False
     
         position_temp = self.get_movement(movement)
-    
+        dto_id = self.data_to_dto([0,0,0,0]).get('state_id')
+        print(dto_id)
+        current_state = gameDAO.get_Qline_by_state(dto_id)
         if self.players[self.get_current_player()] == self.playerA:
             new_pos = [self.player1_pos[0] + position_temp[0], self.player1_pos[1] + position_temp[1]]
             if self.grid[new_pos[0]][new_pos[1]] != 2:
@@ -231,118 +220,126 @@ class CubeeGameModel():
             else:
                 print("Case déjà occupée par l'adversaire")
                 return False
-    
+        self.save_state() 
         return True  # Mouvement effectué avec succès
     
-    # def enable_locked_cases(self, current_player):
-    #     """
-        
-    #     Bloque les cases inaccessibles pour le joueur adverse
-    #     argument:
-    #         - le joueur actuel (PLAYER)
-    #     SI le joueur actif est le joueur A, donne toutes les cases inaccessibles au joueur B
-    #     Et inversément si le joueur actif est le joueur Bs
-    #     """
-    #     # if(current_player == self.playerA):
-    #     #     for i, row in enumerate(self.enclosure_matrix_A):
-    #     #         for j, elem in enumerate(row):
-    #     #             if elem == False:
-    #     #                 print(f"Coordonnées A: ({i}, {j}) - Valeur: {elem}")
-    #     #                 self.grid[i][j] = 2
-    #     # else:
-    #     #     for i, row in enumerate(self.enclosure_matrix_B):
-    #     #         for j, elem in enumerate(row):
-    #     #             if elem == False:
-    #     #                 print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
-    #     #                 self.grid[i][j] = 1
-    #     # print("wip function")
         
     def enclosure_search(self):
         """
         Gère la logique BFS, crée un point de départ (= départ du joueur actif) et active toutes les cases visitables.
         une case visitable rend ses cases adjacentes visitables
         """
+        
+        enclosure_matrix = [[False] * self.dimension for i in range(0,self.dimension)]
+        
+
+        # NE PAS AVOIR D'ATTRIBUTS POUR LES MATRICES
+        # RESET LES MATRICES
+        # AVOIR LE DEBUT  DE LA QUEUE A LA POSITION DU JOUEUR
+        # COMMENCER DEPUIS LA POSITION DU JOUEUR ADVERSE
+
         if self.players[self.get_current_player()] == self.playerA:
-            queue = [(0, 0)]
-            temp_matrix = self.enclosure_matrix_A
-            claimed_value = 1
-        else:
-            queue = [(self.dimension - 1, self.dimension - 1)]
-            temp_matrix = self.enclosure_matrix_B
+            queue = [(self.player2_pos[0], self.player2_pos[1])]
             claimed_value = 2
-    
+            print(len(enclosure_matrix))
+            print(self.player2_pos[0],self.player2_pos[1])
+            enclosure_matrix[self.player2_pos[0]][self.player2_pos[1]] = True
+            
+        else:
+            queue = [(self.player1_pos[0], self.player1_pos[1])]
+            claimed_value = 1
+            print(len(enclosure_matrix))
+            print(self.player1_pos[0],self.player1_pos[1])
+
+            enclosure_matrix[self.player1_pos[0]][self.player1_pos[1]] = True
+        print("matrix before loop:" , enclosure_matrix)
         while queue:
+            print("queue len: ", len(queue))
             case = queue.pop()  # Défilement de la file
             x, y = case  # Récupération des coordonnées
     
-           # print("Processing:", case)
+            print("Processing:", case)
     
             # Vérification des 4 directions
             if y - 1 >= 0:  # LEFT
-                self.check_enclosure((x, y - 1), queue, claimed_value, temp_matrix)
+                self.check_enclosure((x, y - 1), queue, claimed_value, enclosure_matrix)
             if y + 1 < self.dimension:  # RIGHT
-                self.check_enclosure((x, y + 1), queue, claimed_value, temp_matrix)
+                self.check_enclosure((x, y + 1), queue, claimed_value, enclosure_matrix)
             if x - 1 >= 0:  # UP
-                self.check_enclosure((x - 1, y), queue, claimed_value, temp_matrix)
+                self.check_enclosure((x - 1, y), queue, claimed_value, enclosure_matrix)
             if x + 1 < self.dimension:  # DOWN
-                self.check_enclosure((x + 1, y), queue, claimed_value, temp_matrix)
-    
+                self.check_enclosure((x + 1, y), queue, claimed_value, enclosure_matrix)
+
         #     print("Queue:", queue)
-        print("matrix_A:" , self.enclosure_matrix_A)
-        print("matrix_B:" , self.enclosure_matrix_B)
+        print("matrix after loop:" , enclosure_matrix)
 
         if self.players[self.get_current_player()] == self.playerA:
-            for i, row in enumerate(self.enclosure_matrix_A):
+            for i, row in enumerate(enclosure_matrix):
                 for j, elem in enumerate(row):
                     if elem == False:
                         print(f"Coordonnées A: ({i}, {j}) - Valeur: {elem}")
-                        self.grid[i][j] = 2
+                        self.grid[i][j] = 1
         else:
-            for i, row in enumerate(self.enclosure_matrix_B):
+            for i, row in enumerate(enclosure_matrix):
                 for j, elem in enumerate(row):
                     if elem == False:
                         print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
-                        self.grid[i][j] = 1
-                        
-    def check_enclosure(self, case, queue, claimed_value, temp_matrix):
+                        self.grid[i][j] = 2
+    def check_enclosure(self, case, queue, claimed_value, enclosure_matrix):
         """
         Vérification de l'état de la case envoyée en paramètre. Modifie la matrice du joueur adverse et ajoute la case suivante à la file d'attente
         arguments:
             - case à vérifier [INT,INT]
             - file d'attente des cases à vérifier [(INT,INT)]
             - la valeur de l'adversaire sur le plateau (INT)
-            - la matrice contenant toutes les cases visitables par le joueur
+            - la matrice contenant toutes les cases visitables par le joueur [[BOOL]]
         """
         x, y = case
-        if not temp_matrix[x][y] and (self.grid[x][y] == claimed_value or self.grid[x][y] == 0):
-            temp_matrix[x][y] = True
+        print("grid:", self.grid)
+        if not enclosure_matrix[x][y] and (self.grid[x][y] == claimed_value or self.grid[x][y] == 0):
+            enclosure_matrix[x][y] = True
             queue.append(case)
+        if (case in queue):
+            print("append hapenned")
+        else:
+            print("append not hapenned")
 
-    # def data_to_dto(self, action_values):
-    #     temp = 0
-    #     state_id = ""
-    #     state_id += str(self.player1_pos[0])+str(self.player1_pos[1]) + ";"
-    #     state_id += str(self.player2_pos[0])+str(self.player2_pos[1]) + ";"
-    #     state_id += str(self.current_player) + ";"
-    #     for i, elem in enumerate(self.grid):
-    #         for j, elem in enumerate(self.grid):
-    #             state_id += str(self.grid[i][j])
-    #     return{
-    #     'state_id' : state_id,
-    #     'up_value' : action_values[0],
-    #     'down_value' : action_values[1],
-    #     'left_value' : action_values[2],
-    #     'right_value' : action_values[3]
-    #         }
-    # @staticmethod
-    # def dto_to_data(data: dict):
-    #     return   CubeeGameModel(
-    #         state = data.get('state_id'),
-    #         up_value = data.get('up_value'),
-    #         down_value = data.get('down_value'),
-    #         left_value = data.get('left_value'),
-    #         right_value = data.get('right_value')
-    #         )
+
+    def data_to_dto(self, action_values):
+        """
+        convertit l'état de la partie et le transforme en une chaîne de caractères
+        """
+        state_id = ""
+        state_id += str(self.player1_pos[0])+str(self.player1_pos[1]) + ";"
+        state_id += str(self.player2_pos[0])+str(self.player2_pos[1]) + ";"
+        state_id += str(self.current_player) + ";"
+        for i, elem in enumerate(self.grid):
+            for j, elem in enumerate(self.grid):
+                state_id += str(self.grid[i][j])
+        return{
+        'state_id' : state_id,
+        'up_value' : action_values[0],
+        'down_value' : action_values[1],
+        'left_value' : action_values[2],
+        'right_value' : action_values[3]
+            }
+    
+    @staticmethod
+    def dto_to_data(data: dict):
+        """
+        récupère les données du modèle & les valeurs de mouvement et le convertit en dictionnaire pour la database
+        """
+        return   CubeeGameModel(
+            state = data.get('state_id'),
+            up_value = data.get('up_value'),
+            down_value = data.get('down_value'),
+            left_value = data.get('left_value'),
+            right_value = data.get('right_value')
+            
+            )
+    
+    def save_state(self):
+        gameDAO.save_qline(self.data_to_dto([0,0,0,0]))
         
         
 class CubeePlayer():
@@ -370,42 +367,41 @@ class CubeeHuman(CubeePlayer):
         """
         self.player_name = player_name
         
+# class CubeeAI(CubeePlayer):
+#     def __init__(self, AI_name, qtable, alpha=0.1, gamma=0.9, epsilon=0.1):
+#         """
+#         Constructeur du profil du joueur IA intelligent.
         
-class CubeeAI(CubeePlayer):
-    def __init__(self, AI_name, qtable, alpha=0.1, gamma=0.9, epsilon=0.1):
-        """
-        Constructeur du profil du joueur IA intelligent.
-        
-        arguments:
-            - AI_name: nom de l'IA (STR)
-            - qtable: instance de la QTable pour la gestion des valeurs Q
-            - alpha: taux d'apprentissage (FLOAT)
-            - gamma: importance des récompenses futures (FLOAT)
-            - epsilon: taux d'exploration (FLOAT)
-        """
-    super().__init__(AI_name)  
-    self.qtable = qtable
-    self.alpha = alpha  # Learning rate
-    self.gamma = gamma  # Récompenses futures
-    self.epsilon = epsilon  # Exploration vs exploitation
+#         arguments:
+#             - AI_name: nom de l'IA (STR)
+#             - qtable: instance de la QTable pour la gestion des valeurs Q
+#             - alpha: taux d'apprentissage (FLOAT)
+#             - gamma: importance des récompenses futures (FLOAT)
+#             - epsilon: taux d'exploration (FLOAT)
+#         """
+#     super().__init__(AI_name)  
+#     self.qtable = qtable
+#     self.alpha = alpha  # Learning rate
+#     self.gamma = gamma  # Récompenses futures
+#     self.epsilon = epsilon  # Exploration vs exploitation
 
-    def choose_action(self, state):
-        """Sélectionne l'action en fonction de la Q-table ou exploration."""
-        q_values = self.qtable.get_q_values(state)
-        if random.uniform(0, 1) < self.epsilon:
-            return random.choice(["up", "down", "left", "right"])
-        return max(q_values, key=q_values.get)
+#     def choose_action(self, state):
+#         """Sélectionne l'action en fonction de la Q-table ou exploration."""
+#         q_values = self.qtable.get_q_values(state)
+#         if random.uniform(0, 1) < self.epsilon:
+#             return random.choice(["up", "down", "left", "right"])
+#         return max(q_values, key=q_values.get)
     
-    def update_q_table(self, state, action, reward, new_state):
-        """Met à jour la Q-table après un mouvement."""
-        q_values = self.qtable.get_q_values(state)
-        max_future_q = max(self.qtable.get_q_values(new_state).values())
+#     def update_q_table(self, state, action, reward, new_state):
+#         """Met à jour la Q-table après un mouvement."""
+#         q_values = self.qtable.get_q_values(state)
+#         max_future_q = max(self.qtable.get_q_values(new_state).values())
         
-        # Calcul de la nouvelle valeur Q
-        new_q_value = (1 - self.alpha) * q_values[action] + self.alpha * (reward + self.gamma * max_future_q)
-        q_values[action] = new_q_value
+#         # Calcul de la nouvelle valeur Q
+#         new_q_value = (1 - self.alpha) * q_values[action] + self.alpha * (reward + self.gamma * max_future_q)
+#         q_values[action] = new_q_value
         
-        self.qtable.update_q_value(state, q_values)
+#         self.qtable.update_q_value(state, q_values)
 
     def calculate_reward(self, board, player_pos, opponent_pos):
         """
@@ -424,108 +420,10 @@ class CubeeAI(CubeePlayer):
         return reward
 
 
-def test_check_enclosure_empty_board():
-    game = CubeeGameModel(3,"P1","P2")
-    game.board = [[0,0,0],
-                  [0,0,0],
-                  [0,0,2]]
-    game.player_turn = 1
-    game.enclosure_search()
-    assert game.board == [[0,0,0],
-                         [0,0,0],
-                         [0,0,2]]
 
-def test_check_enclosure_simple_case():
-    game = CubeeGameModel(3,"P1", "P2")
-    game.grid = [[1,1,0],
-                  [1,1,1],
-                  [1,2,2]]
-    game.player_turn = 1
-    game.enclosure_search()
-    
-    print(game.grid)
-    assert game.grid == [[1,1,1],
-                         [1,1,1],
-                         [1,2,2]]
-
-def test_check_enclosure_no_enclosed_area():
-    game = CubeeGameModel(3,"P1", "P2")
-    game.grid = [[1,1,1],
-                  [1,0,0],
-                  [1,1,2]]
-    game.player_turn = 1
-    game.enclosure_search()
-    assert game.grid == [[1,1,1],
-                         [1,0,0],
-                         [1,1,2]]
-
-def test_check_enclosure_multiple_spaces():
-    game = CubeeGameModel(4,"P1", "P2")
-    game.grid = [[1,1,1,1],
-                  [1,0,0,1],
-                  [1,0,1,1],
-                  [1,1,2,2]]
-    game.player_turn = 1
-    game.enclosure_search()
-    assert game.grid == [[1,1,1,1],
-                         [1,1,1,1],
-                         [1,1,1,1],
-                         [1,1,2,2]]
-
-def test_check_enclosure_multiple_enclosure():
-    game = CubeeGameModel(4,"P1", "P2")
-    game.grid = [[1,1,0,0],
-                  [1,1,0,1],
-                  [0,1,1,2],
-                  [1,1,2,2]]
-    game.player_turn = 1
-    game.enclosure_search()
-  
-    assert game.grid == [[1,1,1,1],
-                         [1,1,1,1],
-                         [1,1,1,2],
-                         [1,1,2,2]]
-
-                         
-tests = [
-    ([[1,1,1],[1,2,1],[1,2,2]],
-     1,
-     [[1,1,1],[1,2,1],[1,2,2]]),
-
-    ([[1,0,0],[1,1,1],[1,2,2]],
-     1,
-     [[1,1,1],[1,1,1],[1,2,2]]),
-
-    ([[1,1,1],[1,0,2],[1,1,2]],
-     1,
-     [[1,1,1],[1,0,2],[1,1,2]]),
-
-    ([[1,2,0],[1,2,0],[1,2,2]],
-     2,
-     [[1,2,2],[1,2,2],[1,2,2]]),
-
-    ([[1,0,1,1],[1,0,0,1],[1,1,1,2],[1,1,1,2]],
-     1,
-     [[1,1,1,1],[1,1,1,1],[1,1,1,2],[1,1,1,2]]),
-
-    ([[1,0,1,1],[1,0,0,1],[1,1,0,1],[1,1,2,2]],
-     2,
-     [[1,0,1,1],[1,0,0,1],[1,1,0,1],[1,1,2,2]]),
-
-    ([[1,1,0,0],[1,1,0,1],[0,1,2,2],[1,1,2,2]],
-     1,
-     [[1,1,0,0],[1,1,0,1],[1,1,2,2],[1,1,2,2]]),
-]   
-
-@pytest.mark.parametrize("board,turn,expected", tests)
-def test_enclosure(board, turn, expected):
-		game = CubeeGameModel("P1", "P2", size=len(board))
-		game.board = board
-		game.player_turn = turn
-		game.check_enclosure()
-		assert game.board == expected, f"{board} =({turn})=> {game.board}. But expected : {expected} "
 if(__name__ == '__main__'):
-    #example_movement()
     testmodel = CubeeGameModel(4, "Alice", "Bob")
-   # testmodel.data_to_dto()
-    test_check_enclosure_multiple_enclosure()
+    testmodel.move("A", "up")
+    testmodel.move("A", "left")
+    testmodel.move("A", "down")
+    testmodel.move("A", "right")
