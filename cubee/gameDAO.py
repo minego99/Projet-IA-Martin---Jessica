@@ -69,7 +69,7 @@ def get_Qline_by_state(state):
     si la ligne n'existe pas, une nouvelle est crée immédiatement avec des poids initialisés à 0
     """
     new_line = SESSION.query(QLine).filter(QLine.id == state).first()
-    
+    print("new line created")
     if(new_line is None):
         print("adding line")
         new_line = QLine(id = state, up_value = 0, down_value = 0, left_value = 0, right_value = 0)
