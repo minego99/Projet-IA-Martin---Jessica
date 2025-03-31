@@ -11,10 +11,6 @@ Ordre de lecture :
  4) Valeurs retournées (avec type)
  5) Description des fonctionnalités supplémentaires de l'objet
 
-LEGACY: 
-fichiers utilisés pour le développement, mais ne seront plus utilisés pour la suite du projet
- - matches.py
- - matches_UI.py
 
 Pour lancer le jeu, éxécuter le script "main.py" et choisir le premier jeu
 OU ALORS 
@@ -29,6 +25,9 @@ Règles du jeu :
  Le joueur qui prendra la dernière allumette aura perdu la partie
 
 Cubee :
+
+Requirements:
+- SQL Alchemy, peut-être installé avec la commande "pip install SQLAlchemy" dans le cmd
 
 Pour lancer le jeu, éxécuter le script "main.py" et choisir le deuxième jeu
 

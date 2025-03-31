@@ -297,8 +297,7 @@ class CubeeGameModel():
             - la matrice contenant toutes les cases visitables par le joueur [[BOOL]]
         """
         x, y = case
-        if not temp_matrix[x][y] and (self.grid[x][y] == claimed_value or self.grid[x][y] == 0):
-            temp_matrix[x][y] = True
+
         print("grid:", self.grid)
         if not enclosure_matrix[x][y] and (self.grid[x][y] == claimed_value or self.grid[x][y] == 0):
             enclosure_matrix[x][y] = True
@@ -308,7 +307,15 @@ class CubeeGameModel():
         else:
             print("append not hapenned")
 
-
+    @staticmethod
+    def dto_to_data(data: dict):
+        return   CubeeGameModel(
+            state = data.get('state_id'),
+            up_value = data.get('up_value'),
+            down_value = data.get('down_value'),
+            left_value = data.get('left_value'),
+            right_value = data.get('right_value')
+            )
 class QTable:
     def __init__(self, db_path="qtable.db"): # Initialise l'objet QTable avec un fichier de base de données SQLite 
         """
@@ -347,8 +354,7 @@ class QTable:
             return {"up": 0, "down": 0, "left": 0, "right": 0}
     
     def update_q_value(self, state, action, new_value):
-    @staticmethod
-    def dto_to_data(data: dict):
+
         """
         Mise à jour de la valeur Q.
         récupère les données du modèle & les valeurs de mouvement et le convertit en dictionnaire pour la database
@@ -357,14 +363,7 @@ class QTable:
         # ON CONFLICT(state) DO UPDATE SET {} = ?.format(action) → Si l’état existe déjà, met à jour l’action spécifiée (up, down, left, right) avec new_value
         self.cursor.execute("INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) ON CONFLICT(state) DO UPDATE SET {} = ?".format(action), (state, new_value))
         self.conn.commit() #  Sauvegarde la modification dans la base de données
-        return   CubeeGameModel(
-            state = data.get('state_id'),
-            up_value = data.get('up_value'),
-            down_value = data.get('down_value'),
-            left_value = data.get('left_value'),
-            right_value = data.get('right_value')
-            
-            )
+
     
     def close(self):
         """
@@ -412,11 +411,11 @@ class CubeeAI(CubeePlayer):
             - gamma: importance des récompenses futures (FLOAT)
             - epsilon: taux d'exploration (FLOAT)
         """
-    super().__init__(AI_name)  
-    self.qtable = qtable
-    self.alpha = alpha  # Learning rate
-    self.gamma = gamma  # Récompenses futures
-    self.epsilon = epsilon  # Exploration vs exploitation
+        super().__init__(AI_name)  
+        self.qtable = qtable
+        self.alpha = alpha  # Learning rate
+        self.gamma = gamma  # Récompenses futures
+        self.epsilon = epsilon  # Exploration vs exploitation
 
     def choose_action(self, state):
         """Sélectionne l'action en fonction de la Q-table ou exploration."""
