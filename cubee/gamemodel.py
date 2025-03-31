@@ -307,15 +307,43 @@ class CubeeGameModel():
         else:
             print("append not hapenned")
 
+
+    def data_to_dto(self, action_values):
+        """
+        convertit l'état de la partie et le transforme en une chaîne de caractères
+        """
+        state_id = ""
+        state_id += str(self.player1_pos[0])+str(self.player1_pos[1]) + ";"
+        state_id += str(self.player2_pos[0])+str(self.player2_pos[1]) + ";"
+        state_id += str(self.current_player) + ";"
+        for i, elem in enumerate(self.grid):
+            for j, elem in enumerate(self.grid):
+                state_id += str(self.grid[i][j])
+        return{
+        'state_id' : state_id,
+        'up_value' : action_values[0],
+        'down_value' : action_values[1],
+        'left_value' : action_values[2],
+        'right_value' : action_values[3]
+            }
+    
     @staticmethod
     def dto_to_data(data: dict):
+        """
+        récupère les données du modèle & les valeurs de mouvement et le convertit en dictionnaire pour la database
+        """
         return   CubeeGameModel(
             state = data.get('state_id'),
             up_value = data.get('up_value'),
             down_value = data.get('down_value'),
             left_value = data.get('left_value'),
             right_value = data.get('right_value')
+            
             )
+    
+    def save_state(self):
+        gameDAO.save_qline(self.data_to_dto([0,0,0,0]))
+        
 class QTable:
     def __init__(self, db_path="qtable.db"): # Initialise l'objet QTable avec un fichier de base de données SQLite 
         """
