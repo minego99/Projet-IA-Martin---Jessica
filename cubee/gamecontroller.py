@@ -5,7 +5,7 @@ import random
 # Importation des modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from cubee.gamemodel import CubeeGameModel, CubeePlayer, CubeeHuman, QTable, CubeeAI
+from cubee.gamemodel import CubeeGameModel, CubeePlayer, CubeeHuman, CubeeAI
 from cubee.gameview import CubeeGameView
 
 """

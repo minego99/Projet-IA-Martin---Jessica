@@ -35,17 +35,20 @@ class CubeeGameModel():
         """
         self.dimension = dimension
         self.grid = [[0] * self.dimension for i in range(self.dimension)]      
-
         self.grid[0][0] = 1
         self.grid[self.dimension-1][self.dimension-1] = 2
+        
         self.players = [playerA, playerB]
         self.current_player = 0
         self.playerA = playerA
         self.playerB = playerB
+        
         self.player1_pos = [0, 0]
         self.player2_pos = [dimension-1, dimension-1]
+        self.action_values = {"up_value" : 0, "down_value" : 0,"left_value":0,"right_value":0}
 
-
+        self.playerA.model = self
+        self.playerB.model = self
         self.displayable = displayable
         self.shuffle_players()
         
@@ -109,6 +112,7 @@ class CubeeGameModel():
     def step(self):
         """
         Modifie les cases où les joueurs se situent par leur valeur respective
+        Essaye de conquérir les cases enfermées
         """
         self.grid[self.player1_pos[0]][self.player1_pos[1]] = 1
         self.grid[self.player2_pos[0]][self.player2_pos[1]] = 2
@@ -193,7 +197,8 @@ class CubeeGameModel():
         arguments:
             - Le joueur actif (PLAYER)
             - Le mouvenement désiré (STR)
-            
+        Récupère l'état de la partie depuis la base de données avec des poids nulls (pour l'instant)
+        Sauvegarde l'état de la partie juste après le mouvement
         renvoie:
             - Si le mouvement est invalide, FALSE (BOOL)
             - Si aucun cas d'erreur n'a été rencontré, TRUE (BOOL)
@@ -204,7 +209,7 @@ class CubeeGameModel():
             return False
     
         position_temp = self.get_movement(movement)
-        dto_id = self.data_to_dto([0,0,0,0]).get('state_id')
+        dto_id = self.data_to_dto().get('state_id')
         print(dto_id)
         current_state = gameDAO.get_Qline_by_state(dto_id)
         
@@ -222,7 +227,7 @@ class CubeeGameModel():
             else:
                 print("Case déjà occupée par l'adversaire")
                 return False
-        self.save_state() 
+        self.save_state([0,0,0,0]) 
         return True  # Mouvement effectué avec succès
     
         
@@ -307,10 +312,17 @@ class CubeeGameModel():
         else:
             print("append not hapenned")
 
+    def get_new_action_values(self):
+        current_Qline = gameDAO.get_Qline_by_state(self.data_to_dto()["state_id"])
+        self.up_value = current_Qline.up_value
+        self.down_value = current_Qline.down_value
+        self.left_value = current_Qline.left_value
+        self.right_value = current_Qline.right_value
 
-    def data_to_dto(self, action_values):
+        
+    def data_to_dto(self):
         """
-        convertit l'état de la partie et le transforme en une chaîne de caractères
+        convertit l'état de la partie et le transforme en un dictionnaire avec les poids dedans
         """
         state_id = ""
         state_id += str(self.player1_pos[0])+str(self.player1_pos[1]) + ";"
@@ -321,10 +333,10 @@ class CubeeGameModel():
                 state_id += str(self.grid[i][j])
         return{
         'state_id' : state_id,
-        'up_value' : action_values[0],
-        'down_value' : action_values[1],
-        'left_value' : action_values[2],
-        'right_value' : action_values[3]
+        'up_value' : self.action_values["up_value"],
+        'down_value' : self.action_values["down_value"],
+        'left_value' : self.action_values["left_value"],
+        'right_value' : self.action_values["right_value"],
             }
     
     @staticmethod
@@ -341,69 +353,73 @@ class CubeeGameModel():
             
             )
     
-    def save_state(self):
-        gameDAO.save_qline(self.data_to_dto([0,0,0,0]))
+    def save_state(self, state_values):
+        """
+        Envoi de l'état avec ses poids vers la base de données
+        La Qline sera mise à jour ou créée si elle n'existe pas encore dans la BD
+        attributs:
+            - valeurs des 4 poids [REEL]
+        """
+        gameDAO.save_qline(self.data_to_dto())
         
-class QTable:
-    def __init__(self, db_path="qtable.db"): # Initialise l'objet QTable avec un fichier de base de données SQLite 
-        """
-        Gestion de la base de données pour la Q-table.
-        """
-        self.conn = sqlite3.connect(db_path) #  Établit une connexion avec la base de données SQLite (qtable.db)
-        self.cursor = self.conn.cursor() # Crée un curseur permettant d'exécuter des requêtes SQL
-        self.create_table() #  Appelle une méthode qui crée la table qtable si elle n'existe pas encore
+# class QTable:
+#     def __init__(self, db_path="qtable.db"): # Initialise l'objet QTable avec un fichier de base de données SQLite 
+#         """
+#         Gestion de la base de données pour la Q-table.
+#         """
+#         self.conn = sqlite3.connect(db_path) #  Établit une connexion avec la base de données SQLite (qtable.db)
+#         self.cursor = self.conn.cursor() # Crée un curseur permettant d'exécuter des requêtes SQL
+#         self.create_table() #  Appelle une méthode qui crée la table qtable si elle n'existe pas encore
     
-    def create_table(self):
-        """
-        Création de la table si elle n'existe pas.
-        """
-        self.cursor.execute('''
-            CREATE TABLE IF NOT EXISTS qtable (
-                # Définition de state (état du jeu) comme clé primaire :
-                state TEXT PRIMARY KEY,
-                # Initialisation des valeurs Q pour chaque action (up, down, left, right) à 0 :
-                up REAL DEFAULT 0,
-                down REAL DEFAULT 0,
-                left REAL DEFAULT 0,
-                right REAL DEFAULT 0
-            )
-        ''')
-        self.conn.commit() # Applique la modification en enregistrant la création de la table
+#     def create_table(self):
+#         """
+#         Création de la table si elle n'existe pas.
+#         """
+#         self.cursor.execute('''
+#             CREATE TABLE IF NOT EXISTS qtable (
+#                 # Définition de state (état du jeu) comme clé primaire :
+#                 state TEXT PRIMARY KEY,
+#                 # Initialisation des valeurs Q pour chaque action (up, down, left, right) à 0 :
+#                 up REAL DEFAULT 0,
+#                 down REAL DEFAULT 0,
+#                 left REAL DEFAULT 0,
+#                 right REAL DEFAULT 0
+#             )
+#         ''')
+#         self.conn.commit() # Applique la modification en enregistrant la création de la table
     
-    def get_q_values(self, state):
-        """
-        Récupération des valeurs Q pour un état donné.
-        """
-        self.cursor.execute("SELECT * FROM qtable WHERE state = ?", (state,)) # Cherche l’état state dans la table qtable
-        row = self.cursor.fetchone() # Récupère la première ligne trouvée (ou None si l’état n’existe pas
-        if row: # Si état trouvé (row existe), on retourne les valeurs up, down, left, right sinon on retourne des valeurs Q initialisées à 0
-            return {"up": row[1], "down": row[2], "left": row[3], "right": row[4]}
-        else:
-            return {"up": 0, "down": 0, "left": 0, "right": 0}
+#     def get_q_values(self, state):
+#         """
+#         Récupération des valeurs Q pour un état donné.
+#         """
+#         self.cursor.execute("SELECT * FROM qtable WHERE state = ?", (state,)) # Cherche l’état state dans la table qtable
+#         row = self.cursor.fetchone() # Récupère la première ligne trouvée (ou None si l’état n’existe pas
+#         if row: # Si état trouvé (row existe), on retourne les valeurs up, down, left, right sinon on retourne des valeurs Q initialisées à 0
+#             return {"up": row[1], "down": row[2], "left": row[3], "right": row[4]}
+#         else:
+#             return {"up": 0, "down": 0, "left": 0, "right": 0}
     
-    def update_q_value(self, state, action, new_value):
+#     def update_q_value(self, state, action, new_value):
 
-        """
-        Mise à jour de la valeur Q.
-        récupère les données du modèle & les valeurs de mouvement et le convertit en dictionnaire pour la database
-        """
-        # INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) → Insère un nouvel état avec des valeurs Q à 0 si l’état n’existe pas encore
-        # ON CONFLICT(state) DO UPDATE SET {} = ?.format(action) → Si l’état existe déjà, met à jour l’action spécifiée (up, down, left, right) avec new_value
-        self.cursor.execute("INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) ON CONFLICT(state) DO UPDATE SET {} = ?".format(action), (state, new_value))
-        self.conn.commit() #  Sauvegarde la modification dans la base de données
+#         """
+#         Mise à jour de la valeur Q.
+#         récupère les données du modèle & les valeurs de mouvement et le convertit en dictionnaire pour la database
+#         """
+#         # INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) → Insère un nouvel état avec des valeurs Q à 0 si l’état n’existe pas encore
+#         # ON CONFLICT(state) DO UPDATE SET {} = ?.format(action) → Si l’état existe déjà, met à jour l’action spécifiée (up, down, left, right) avec new_value
+#         self.cursor.execute("INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) ON CONFLICT(state) DO UPDATE SET {} = ?".format(action), (state, new_value))
+#         self.conn.commit() #  Sauvegarde la modification dans la base de données
 
     
-    def close(self):
-        """
-        Fermeture de la connextion à la BDD et libération des ressources liées à la connexion SQLite
-        """
-        self.conn.close()        
-    def save_state(self):
-        gameDAO.save_qline(self.data_to_dto([0,0,0,0]))
-        
+#     def close(self):
+#         """
+#         Fermeture de la connextion à la BDD et libération des ressources liées à la connexion SQLite
+#         """
+#         self.conn.close()        
+
         
 class CubeePlayer():
-    def __init__(self, player_name):
+    def __init__(self, player_name, model = None):
         """
         Constructeur du profil du joueur:
             argument:
@@ -412,7 +428,7 @@ class CubeePlayer():
                 - nom du joueur(STR)
         """
         self.player_name = player_name
-        
+        self.model = model
 
 class CubeeHuman(CubeePlayer):
     def __init__(self, player_name):
@@ -428,7 +444,7 @@ class CubeeHuman(CubeePlayer):
         self.player_name = player_name
 
 class CubeeAI(CubeePlayer):
-    def __init__(self, AI_name, qtable, alpha=0.1, gamma=0.9, epsilon=0.1):
+    def __init__(self, AI_name, alpha=0.1, gamma=0.9, epsilon=0.1):
         """
         Constructeur du profil du joueur IA intelligent.
         
@@ -440,17 +456,21 @@ class CubeeAI(CubeePlayer):
             - epsilon: taux d'exploration (FLOAT)
         """
         super().__init__(AI_name)  
-        self.qtable = qtable
+        
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Récompenses futures
         self.epsilon = epsilon  # Exploration vs exploitation
 
-    def choose_action(self, state):
+    def choose_action(self):
         """Sélectionne l'action en fonction de la Q-table ou exploration."""
-        q_values = self.qtable.get_q_values(state)
-        if random.uniform(0, 1) < self.epsilon: # si nombre entre 0 et 1 est inférieur à epsilon, l'IA prend une action au hasard
+        
+        q_values = self.model.action_values
+        if random.uniform(0, 1) > self.epsilon: # si nombre entre 0 et 1 est inférieur à epsilon, l'IA prend une action au hasard
+            print("explore")
             return random.choice(["up", "down", "left", "right"])
-        return max(q_values, key=q_values.get) # sinon, l'IA exploite la Q-table et choisit l'action avec la plus haute valeur Q
+        else:
+            print("exploit")
+            return max(q_values, key=q_values.get) # sinon, l'IA exploite la Q-table et choisit l'action avec la plus haute valeur Q
 #     def choose_action(self, state):
 #         """Sélectionne l'action en fonction de la Q-table ou exploration."""
 #         q_values = self.qtable.get_q_values(state)
@@ -460,16 +480,8 @@ class CubeeAI(CubeePlayer):
     
     def update_q_table(self, state, action, reward, new_state):
         """Met à jour la Q-table après un mouvement."""
-        q_values = self.qtable.get_q_values(state)
+        q_values = self.model.action_values
         max_future_q = max(self.qtable.get_q_values(new_state).values()) # cherche la meilleure valeur Q de l'état suivant new_state : représente l'estimation de la meilleure récompense future
-#     def update_q_table(self, state, action, reward, new_state):
-#         """Met à jour la Q-table après un mouvement."""
-#         q_values = self.qtable.get_q_values(state)
-#         max_future_q = max(self.qtable.get_q_values(new_state).values())
-        
-#         # Calcul de la nouvelle valeur Q
-#         new_q_value = (1 - self.alpha) * q_values[action] + self.alpha * (reward + self.gamma * max_future_q)
-#         q_values[action] = new_q_value
         
         # Calcul de la nouvelle valeur Q
         # Met à jour la valeur Q avec l'équation du Q-learning :
@@ -505,8 +517,17 @@ class CubeeAI(CubeePlayer):
 
 
 if(__name__ == '__main__'):
-    testmodel = CubeeGameModel(4, "Alice", "Bob")
+    playerA = CubeePlayer("Alice")
+    playerB = CubeeAI("Bob")
+
+    testmodel = CubeeGameModel(4, playerA, playerB)
+
     testmodel.move("A", "up")
+   
     testmodel.move("A", "left")
+
     testmodel.move("A", "down")
+
     testmodel.move("A", "right")
+    Bot = CubeePlayer("Bot")
+    testmodel.get_new_action_values()
