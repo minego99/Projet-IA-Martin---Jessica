@@ -45,7 +45,6 @@ class CubeeGameModel():
         
         self.player1_pos = [0, 0]
         self.player2_pos = [dimension-1, dimension-1]
-        self.action_values = {"up_value" : 0, "down_value" : 0,"left_value":0,"right_value":0}
 
         self.playerA.model = self
         self.playerB.model = self
@@ -209,9 +208,6 @@ class CubeeGameModel():
             return False
     
         position_temp = self.get_movement(movement)
-        dto_id = self.data_to_dto().get('state_id')
-        print(dto_id)
-        current_state = gameDAO.get_Qline_by_state(dto_id)
         
         if self.players[self.get_current_player()] == self.playerA:
             new_pos = [self.player1_pos[0] + position_temp[0], self.player1_pos[1] + position_temp[1]]
@@ -227,7 +223,7 @@ class CubeeGameModel():
             else:
                 print("Case déjà occupée par l'adversaire")
                 return False
-        self.save_state([0,0,0,0]) 
+       
         return True  # Mouvement effectué avec succès
     
         
@@ -312,32 +308,19 @@ class CubeeGameModel():
         else:
             print("append not hapenned")
 
-    def get_new_action_values(self):
-        current_Qline = gameDAO.get_Qline_by_state(self.data_to_dto()["state_id"])
-        self.up_value = current_Qline.up_value
-        self.down_value = current_Qline.down_value
-        self.left_value = current_Qline.left_value
-        self.right_value = current_Qline.right_value
 
-        
-    def data_to_dto(self):
+    def create_state (self):
         """
-        convertit l'état de la partie et le transforme en un dictionnaire avec les poids dedans
+        Crée l'id de la database à partir des données de la partie
+        renvoie:
+            - l'id de l'état de la partie (STR)
         """
         state_id = ""
         state_id += str(self.player1_pos[0])+str(self.player1_pos[1]) + ";"
         state_id += str(self.player2_pos[0])+str(self.player2_pos[1]) + ";"
         state_id += str(self.current_player) + ";"
-        for i, elem in enumerate(self.grid):
-            for j, elem in enumerate(self.grid):
-                state_id += str(self.grid[i][j])
-        return{
-        'state_id' : state_id,
-        'up_value' : self.action_values["up_value"],
-        'down_value' : self.action_values["down_value"],
-        'left_value' : self.action_values["left_value"],
-        'right_value' : self.action_values["right_value"],
-            }
+        return state_id
+    
     
     @staticmethod
     def dto_to_data(data: dict):
@@ -361,62 +344,7 @@ class CubeeGameModel():
             - valeurs des 4 poids [REEL]
         """
         gameDAO.save_qline(self.data_to_dto())
-        
-# class QTable:
-#     def __init__(self, db_path="qtable.db"): # Initialise l'objet QTable avec un fichier de base de données SQLite 
-#         """
-#         Gestion de la base de données pour la Q-table.
-#         """
-#         self.conn = sqlite3.connect(db_path) #  Établit une connexion avec la base de données SQLite (qtable.db)
-#         self.cursor = self.conn.cursor() # Crée un curseur permettant d'exécuter des requêtes SQL
-#         self.create_table() #  Appelle une méthode qui crée la table qtable si elle n'existe pas encore
-    
-#     def create_table(self):
-#         """
-#         Création de la table si elle n'existe pas.
-#         """
-#         self.cursor.execute('''
-#             CREATE TABLE IF NOT EXISTS qtable (
-#                 # Définition de state (état du jeu) comme clé primaire :
-#                 state TEXT PRIMARY KEY,
-#                 # Initialisation des valeurs Q pour chaque action (up, down, left, right) à 0 :
-#                 up REAL DEFAULT 0,
-#                 down REAL DEFAULT 0,
-#                 left REAL DEFAULT 0,
-#                 right REAL DEFAULT 0
-#             )
-#         ''')
-#         self.conn.commit() # Applique la modification en enregistrant la création de la table
-    
-#     def get_q_values(self, state):
-#         """
-#         Récupération des valeurs Q pour un état donné.
-#         """
-#         self.cursor.execute("SELECT * FROM qtable WHERE state = ?", (state,)) # Cherche l’état state dans la table qtable
-#         row = self.cursor.fetchone() # Récupère la première ligne trouvée (ou None si l’état n’existe pas
-#         if row: # Si état trouvé (row existe), on retourne les valeurs up, down, left, right sinon on retourne des valeurs Q initialisées à 0
-#             return {"up": row[1], "down": row[2], "left": row[3], "right": row[4]}
-#         else:
-#             return {"up": 0, "down": 0, "left": 0, "right": 0}
-    
-#     def update_q_value(self, state, action, new_value):
-
-#         """
-#         Mise à jour de la valeur Q.
-#         récupère les données du modèle & les valeurs de mouvement et le convertit en dictionnaire pour la database
-#         """
-#         # INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) → Insère un nouvel état avec des valeurs Q à 0 si l’état n’existe pas encore
-#         # ON CONFLICT(state) DO UPDATE SET {} = ?.format(action) → Si l’état existe déjà, met à jour l’action spécifiée (up, down, left, right) avec new_value
-#         self.cursor.execute("INSERT INTO qtable (state, up, down, left, right) VALUES (?, 0, 0, 0, 0) ON CONFLICT(state) DO UPDATE SET {} = ?".format(action), (state, new_value))
-#         self.conn.commit() #  Sauvegarde la modification dans la base de données
-
-    
-#     def close(self):
-#         """
-#         Fermeture de la connextion à la BDD et libération des ressources liées à la connexion SQLite
-#         """
-#         self.conn.close()        
-
+   
         
 class CubeePlayer():
     def __init__(self, player_name, model = None):
@@ -460,42 +388,94 @@ class CubeeAI(CubeePlayer):
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Récompenses futures
         self.epsilon = epsilon  # Exploration vs exploitation
-
+        self.action_values = gameDAO.get_Qline_by_state("0")
     def choose_action(self):
-        """Sélectionne l'action en fonction de la Q-table ou exploration."""
-        
-        q_values = self.model.action_values
-        if random.uniform(0, 1) > self.epsilon: # si nombre entre 0 et 1 est inférieur à epsilon, l'IA prend une action au hasard
-            print("explore")
-            return random.choice(["up", "down", "left", "right"])
+        """Choisit une action selon une stratégie ε-greedy."""
+        state_id = self.model.create_state()
+        q_values = gameDAO.get_Qline_by_state(state_id)
+    
+        actions = ['up', 'down', 'left', 'right']
+        values = [
+            q_values.up_value,
+            q_values.down_value,
+            q_values.left_value,
+            q_values.right_value
+        ]
+    
+        if random.uniform(0, 1) < self.epsilon:
+            # Exploration : choisir une action aléatoire
+            return random.choice(actions)
         else:
-            print("exploit")
-            return max(q_values, key=q_values.get) # sinon, l'IA exploite la Q-table et choisit l'action avec la plus haute valeur Q
+            # Exploitation : choisir l'action avec la plus grande valeur Q
+            max_index = values.index(max(values))
+            return actions[max_index]
+
 #     def choose_action(self, state):
 #         """Sélectionne l'action en fonction de la Q-table ou exploration."""
 #         q_values = self.qtable.get_q_values(state)
 #         if random.uniform(0, 1) < self.epsilon:
 #             return random.choice(["up", "down", "left", "right"])
 #         return max(q_values, key=q_values.get)
-    
-    def update_q_table(self, state, action, reward, new_state):
-        """Met à jour la Q-table après un mouvement."""
-        q_values = self.model.action_values
-        max_future_q = max(self.qtable.get_q_values(new_state).values()) # cherche la meilleure valeur Q de l'état suivant new_state : représente l'estimation de la meilleure récompense future
+    def data_to_dto(self):
+        """
+        convertit l'état de la partie et le transforme en un dictionnaire avec les poids dedans
+        """
         
-        # Calcul de la nouvelle valeur Q
-        # Met à jour la valeur Q avec l'équation du Q-learning :
-        # (1 - alpha) * q_values[action] : ancienne valeur légèrement diminuée
-        # reward + gamma * max_future_q : nouvelle estimation de la récompense
-        # alpha : contrôle l'importance de l'ancienne valeur vs la nouvelle estimation
-        new_q_value = (1 - self.alpha) * q_values[action] + self.alpha * (reward + self.gamma * max_future_q)
-        q_values[action] = new_q_value
-        # Màj BDD avec nouvelle valeur Q
-        self.qtable.update_q_value(state, q_values)
+        state_id = self.model.create_state()
+        for i, elem in enumerate(self.model.grid):
+            for j, elem in enumerate(self.model.grid):
+                state_id += str(self.model.grid[i][j])
+ 
+        return{
+        'state_id' : state_id,
+        'up_value' : self.action_values.up_value,
+        'down_value' : self.action_values.down_value,
+        'left_value' : self.action_values.left_value,
+        'right_value' : self.action_values.right_value,
+            }
 
-    def calculate_reward(self, board, player_pos, opponent_pos):
+    def update_q_table(self, previous_state, action, reward, new_state):
+        """
+        Met à jour la Q-table après un mouvement.
+        sauvegarde le nouvel état avec les nouvelles valeurs dans la DB
+        """
+    
+        # Obtenir les valeurs Q pour l'état suivant
+        next_q_values = gameDAO.get_Qline_by_state(new_state)
+        max_future_q = max([
+            next_q_values.up_value,
+            next_q_values.down_value,
+            next_q_values.left_value,
+            next_q_values.right_value
+        ])
+    
+        # Obtenir les valeurs Q de l'état précédent
+        current_q_values = gameDAO.get_Qline_by_state(previous_state)
+    
+        # Récupérer la Q-value actuelle selon l'action jouée
+        current_q = getattr(current_q_values, f"{action}_value")
+    
+        # Calcul de la nouvelle valeur Q
+        new_q = (1 - self.alpha) * current_q + self.alpha * (reward + self.gamma * max_future_q)
+    
+        # Mise à jour de la valeur correspondante
+        setattr(current_q_values, f"{action}_value", new_q)
+    
+        # Sauvegarde dans la base de données
+        gameDAO.save_qline({
+            'state_id': previous_state,
+            'up_value': current_q_values.up_value,
+            'down_value': current_q_values.down_value,
+            'left_value': current_q_values.left_value,
+            'right_value': current_q_values.right_value
+        })
+
+
+    def calculate_reward(self, player_pos, opponent_pos):
         """
         Calcule la récompense basée sur le mouvement effectué par l'IA.
+        renvoie:
+            - la récompense (FLOAT)
         """
         reward = 0
         # Pénalité si le mouvement sort des limites
@@ -504,30 +484,49 @@ class CubeeAI(CubeePlayer):
         # player_pos[0] >= len(board) → Le joueur dépasse la limite basse (5 si le tableau fait 5 lignes)
         # player_pos[1] < 0 → Le joueur dépasse la limite gauche (-1)
         # player_pos[1] >= len(board[0]) → Le joueur dépasse la limite droite (5 si le tableau fait 5 colonnes)
-        if player_pos[0] < 0 or player_pos[0] >= len(board) or player_pos[1] < 0 or player_pos[1] >= len(board):
+        if player_pos[0] < 0 or player_pos[0] >= len(self.model.grid) or player_pos[1] < 0 or player_pos[1] >= len(self.model.grid):
             reward -= 10  # Pénalité pour sortie
 
         # Récompense pour les cases prises
-        player_score = sum(row.count(1) for row in board)  # Nombre de cases du joueur
-        opponent_score = sum(row.count(2) for row in board)  # Nombre de cases de l'adversaire
+        player_score = sum(row.count(1) for row in self.model.grid)  # Nombre de cases du joueur
+        opponent_score = sum(row.count(2) for row in self.model.grid)  # Nombre de cases de l'adversaire
         reward += (player_score - opponent_score)  # Récompense immédiate
-
+        print("reward: ", reward)
         return reward
 
 
 
 if(__name__ == '__main__'):
+    
+    
     playerA = CubeePlayer("Alice")
     playerB = CubeeAI("Bob")
-
     testmodel = CubeeGameModel(4, playerA, playerB)
+    
+    previous_state = testmodel.create_state()
+    action = playerB.choose_action()
+    testmodel.move(playerB, action)
+    new_state = testmodel.create_state()
+    reward = playerB.calculate_reward(testmodel.player1_pos, testmodel.player2_pos)    
+    playerB.update_q_table(previous_state, action, reward, new_state)
+    
+    previous_state = testmodel.create_state()
+    action = playerB.choose_action()
+    testmodel.move(playerB, action)
+    new_state = testmodel.create_state()
+    reward = playerB.calculate_reward(testmodel.player1_pos, testmodel.player2_pos)    
+    playerB.update_q_table(previous_state, action, reward, new_state)
+    
+    previous_state = testmodel.create_state()
+    action = playerB.choose_action()
+    testmodel.move(playerB, action)
+    new_state = testmodel.create_state()
+    reward = playerB.calculate_reward(testmodel.player1_pos, testmodel.player2_pos)    
+    playerB.update_q_table(previous_state, action, reward, new_state)
+    
+    print("pos: ", testmodel.player1_pos, testmodel.player2_pos) 
+    print("action_value up: ", gameDAO.get_Qline_by_state(new_state).up_value)
+    print("action_value down: ",gameDAO.get_Qline_by_state(new_state).down_value)
+    print("action_value left: ",gameDAO.get_Qline_by_state(new_state).left_value)
+    print("action_value right: ",gameDAO.get_Qline_by_state(new_state).right_value)
 
-    testmodel.move("A", "up")
-   
-    testmodel.move("A", "left")
-
-    testmodel.move("A", "down")
-
-    testmodel.move("A", "right")
-    Bot = CubeePlayer("Bot")
-    testmodel.get_new_action_values()

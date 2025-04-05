@@ -83,24 +83,32 @@ def init_db():
     Base.metadata.create_all(engine)
 
 
-def save_qline(Qline):
+def save_qline(Qline_dict):
     """
-    Save a user to a file
-    @param user_dto: dict
+    Sauvegarde ou met à jour une Qline
     """
-      
-    try: 
-        SESSION.add(QLine.from_dto(Qline))
+    try:
+        qline_instance = QLine.from_dto(Qline_dict)
+        SESSION.merge(qline_instance)  # au lieu de SESSION.add(...)
         SESSION.commit()
     except IntegrityError:
-        SESSION.rollback()  # Annule l'insertion en cas d'erreur
-        existing_entry = SESSION.query(QLine).filter_by(id=Qline.get("state_id")).first()
-        existing_entry.up_value = 0.0  # Modifier les valeurs si besoin
-        existing_entry.down_value = 0.0
-        SESSION.commit()
+        SESSION.rollback()
+        print("Erreur d'intégrité lors de la sauvegarde de QLine.")
+
 if __name__ =="__main__":
-     init_db()
-     debug = SESSION.query(QLine).all()
-     print(len(debug))
-     for val in debug:
-         print(val.id)
+     # init_db()
+     # debug = SESSION.query(QLine).all()
+     # print(len(debug))
+     # for val in debug:
+     #     print(val.id)
+        
+     q = {
+        "state_id": "00;33;0;",
+        "up_value": 1.0,
+        "down_value": 2.0,
+        "left_value": 3.0,
+        "right_value": 4.0
+        }
+        
+     save_qline(q)
+     print(get_Qline_by_state(q["state_id"]).up_value)
