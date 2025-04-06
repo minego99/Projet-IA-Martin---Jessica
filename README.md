@@ -1,7 +1,7 @@
 # Projet IA Martin - Jessica
 
 Ordre de lecture :
- gamemodel => gamevieuw => gamecontroller
+gamemodel => gamevieuw => gamecontroller
 
  Structure des DocString:
 
@@ -12,9 +12,12 @@ Ordre de lecture :
  5) Description des fonctionnalités supplémentaires de l'objet
 
 
-Pour lancer le jeu, éxécuter le script "main.py" et choisir le premier jeu
-OU ALORS 
-Se rendre à l'emplacement du contenu du dossier dans l'invite de commande (avec la commande cd ) et éxécuter la commande python < main.py >
+Lancer les jeux :
+
+Deux options :
+- Lancer main.py directement et choisir le jeu souhaité dans le menu
+- Ou via le terminal, aller dans le dossier contenant le projet avec cd puis exécuter "python main.py
+"
 
 Pour lancer un exemple d'entraînement, compiler directement le script "gamemodel.py"
 
@@ -28,8 +31,6 @@ Cubee :
 
 Requirements:
 - SQL Alchemy, peut-être installé avec la commande "pip install SQLAlchemy" dans le cmd
-
-Pour lancer le jeu, éxécuter le script "main.py" et choisir le deuxième jeu
 
 Règle du jeu :
 But :
