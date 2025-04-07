@@ -494,7 +494,7 @@ class CubeeAI(CubeePlayer):
        # print("reward: ", reward)
         return reward
 
-def training(model, training_amount):
+def training(model, training_amount, epsilon_rate):
     """
     Entraîne l'IA intelligente contre une IA aléatoire sur un nombre défini de parties.
     
@@ -513,7 +513,6 @@ def training(model, training_amount):
             random_ai = player
 
     ai_wins = 0
-    print("test")
     for episode in range(training_amount):
         print(episode)
         model.reset()
@@ -543,8 +542,10 @@ def training(model, training_amount):
                 model.step()
 
             model.switch_player()
-        for episode in range(training_amount):
             if(episode%1000 == 0):
+                  ai.epsilon += epsilon_rate / training_amount
+            if(episode%10000 == 0):
+                  print("epsilon: ", ai.epsilon)
                   print(episode, " parties jouées")    
                   print(f"Victoires de l'IA intelligente : {ai_wins}")
                   print(f"Taux de victoire : {ai_wins / training_amount * 100:.2f}%")
@@ -567,5 +568,5 @@ if(__name__ == '__main__'):
     playerB = CubeeAI("Bob")
     testmodel = CubeeGameModel(4, playerA, playerB)
     
-    training(testmodel, 50000)
+    training(testmodel, 50000, )
 
