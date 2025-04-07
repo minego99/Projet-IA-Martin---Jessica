@@ -69,9 +69,9 @@ def get_Qline_by_state(state):
     si la ligne n'existe pas, une nouvelle est crée immédiatement avec des poids initialisés à 0
     """
     new_line = SESSION.query(QLine).filter(QLine.id == state).first()
-    print("querry for a line")
+    #print("querry for a line")
     if(new_line is None):
-        print("adding line")
+      #  print("adding line")
         new_line = QLine(id = state, up_value = 0, down_value = 0, left_value = 0, right_value = 0)
         SESSION.add(new_line)
         SESSION.commit()
@@ -93,7 +93,7 @@ def save_qline(Qline_dict):
         SESSION.commit()
     except IntegrityError:
         SESSION.rollback()
-        print("Erreur d'intégrité lors de la sauvegarde de QLine.")
+     #   print("Erreur d'intégrité lors de la sauvegarde de QLine.")
 
 if __name__ =="__main__":
      # init_db()
@@ -111,4 +111,4 @@ if __name__ =="__main__":
         }
         
      save_qline(q)
-     print(get_Qline_by_state(q["state_id"]).up_value)
+   #  print(get_Qline_by_state(q["state_id"]).up_value)

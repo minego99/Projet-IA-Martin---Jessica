@@ -142,7 +142,7 @@ class CubeeGameModel():
         """
         Change de joueur actif en modifiant l'index de la liste contenant les deux joueurs
         """
-        print("SWITCH, joueur actuel: ", self.current_player)
+        #print("SWITCH, joueur actuel: ", self.current_player)
         self.current_player = 1 - self.current_player
         
     def get_movement(self, movement):
@@ -204,7 +204,7 @@ class CubeeGameModel():
         """
         
         if not self.is_movement_valid(movement):
-            print(f"Le mouvement '{movement}' est invalide.")
+           # print(f"Le mouvement '{movement}' est invalide.")
             return False
     
         position_temp = self.get_movement(movement)
@@ -214,14 +214,14 @@ class CubeeGameModel():
             if self.grid[new_pos[0]][new_pos[1]] != 2:
                 self.player1_pos = new_pos
             else:
-                print("Case déjà occupée par l'adversaire")
+              #  print("Case déjà occupée par l'adversaire")
                 return False
         else:
             new_pos = [self.player2_pos[0] + position_temp[0], self.player2_pos[1] + position_temp[1]]
             if self.grid[new_pos[0]][new_pos[1]] != 1:
                 self.player2_pos = new_pos
             else:
-                print("Case déjà occupée par l'adversaire")
+              #  print("Case déjà occupée par l'adversaire")
                 return False
        
         return True  # Mouvement effectué avec succès
@@ -244,24 +244,24 @@ class CubeeGameModel():
         if self.players[self.get_current_player()] == self.playerA:
             queue = [(self.player2_pos[0], self.player2_pos[1])]
             claimed_value = 2
-            print(len(enclosure_matrix))
-            print(self.player2_pos[0],self.player2_pos[1])
+            #print(len(enclosure_matrix))
+            #print(self.player2_pos[0],self.player2_pos[1])
             enclosure_matrix[self.player2_pos[0]][self.player2_pos[1]] = True
             
         else:
             queue = [(self.player1_pos[0], self.player1_pos[1])]
             claimed_value = 1
-            print(len(enclosure_matrix))
-            print(self.player1_pos[0],self.player1_pos[1])
+           # print(len(enclosure_matrix))
+            #print(self.player1_pos[0],self.player1_pos[1])
 
             enclosure_matrix[self.player1_pos[0]][self.player1_pos[1]] = True
-        print("matrix before loop:" , enclosure_matrix)
+       # print("matrix before loop:" , enclosure_matrix)
         while queue:
-            print("queue len: ", len(queue))
+          #  print("queue len: ", len(queue))
             case = queue.pop()  # Défilement de la file
             x, y = case  # Récupération des coordonnées
     
-            print("Processing:", case)
+         #   print("Processing:", case)
     
             # Vérification des 4 directions
             if y - 1 >= 0:  # LEFT
@@ -274,19 +274,19 @@ class CubeeGameModel():
                 self.check_enclosure((x + 1, y), queue, claimed_value, enclosure_matrix)
 
         #     print("Queue:", queue)
-        print("matrix after loop:" , enclosure_matrix)
+    #    print("matrix after loop:" , enclosure_matrix)
 
         if self.players[self.get_current_player()] == self.playerA:
             for i, row in enumerate(enclosure_matrix):
                 for j, elem in enumerate(row):
                     if elem == False:
-                        print(f"Coordonnées A: ({i}, {j}) - Valeur: {elem}")
+                       # print(f"Coordonnées A: ({i}, {j}) - Valeur: {elem}")
                         self.grid[i][j] = 1
         else:
             for i, row in enumerate(enclosure_matrix):
                 for j, elem in enumerate(row):
                     if elem == False:
-                        print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
+                    #    print(f"Coordonnées B: ({i}, {j}) - Valeur: {elem}")
                         self.grid[i][j] = 2
     def check_enclosure(self, case, queue, claimed_value, enclosure_matrix):
         """
@@ -299,14 +299,14 @@ class CubeeGameModel():
         """
         x, y = case
 
-        print("grid:", self.grid)
+        #print("grid:", self.grid)
         if not enclosure_matrix[x][y] and (self.grid[x][y] == claimed_value or self.grid[x][y] == 0):
             enclosure_matrix[x][y] = True
             queue.append(case)
-        if (case in queue):
-            print("append hapenned")
-        else:
-            print("append not hapenned")
+        # if (case in queue):
+        #     print("append hapenned")
+        # else:
+        #     print("append not hapenned")
 
 
     def create_state (self):
@@ -491,10 +491,74 @@ class CubeeAI(CubeePlayer):
         player_score = sum(row.count(1) for row in self.model.grid)  # Nombre de cases du joueur
         opponent_score = sum(row.count(2) for row in self.model.grid)  # Nombre de cases de l'adversaire
         reward += (player_score - opponent_score)  # Récompense immédiate
-        print("reward: ", reward)
+       # print("reward: ", reward)
         return reward
 
+def training(model, training_amount):
+    """
+    Entraîne l'IA intelligente contre une IA aléatoire sur un nombre défini de parties.
+    
+    Arguments:
+        - model : une instance de CubeeGameModel
+        - training_amount : nombre de parties à jouer (INT)
+    """
+    ai = None
+    random_ai = None
+    
+    # Identifier l'IA intelligente et l'IA aléatoire
+    for player in model.players:
+        if isinstance(player, CubeeAI):
+            ai = player
+        else:
+            random_ai = player
 
+    ai_wins = 0
+    print("test")
+    for episode in range(training_amount):
+        print(episode)
+        model.reset()
+        
+        while not model.is_over():
+            current_player = model.players[model.get_current_player()]
+            
+            if current_player == ai:
+                prev_state = model.create_state()
+                action = ai.choose_action()
+
+                # Tenter le mouvement, sinon essayer une autre action aléatoire
+                if not model.move(ai, action):
+                    action = random.choice(["up", "down", "left", "right"])
+                    model.move(ai, action)
+
+                model.step()
+                new_state = model.create_state()
+                reward = ai.calculate_reward(model.player1_pos, model.player2_pos)
+                ai.update_q_table(prev_state, action, reward, new_state)
+            else:
+                # IA aléatoire : mouvements jusqu'à ce qu'un mouvement valide soit trouvé
+                moved = False
+                while not moved:
+                    rand_action = random.choice(["up", "down", "left", "right"])
+                    moved = model.move(random_ai, rand_action)
+                model.step()
+
+            model.switch_player()
+        for episode in range(training_amount):
+            if(episode%1000 == 0):
+                  print(episode, " parties jouées")    
+                  print(f"Victoires de l'IA intelligente : {ai_wins}")
+                  print(f"Taux de victoire : {ai_wins / training_amount * 100:.2f}%")
+        # Compter les victoires
+        winner = model.get_winner()
+        if model.players[winner] == ai:
+            ai_wins += 1
+
+    #print(f"Partie {episode + 1}/{training_amount} - Gagnant : {model.players[winner].player_name if winner != -1 else 'Égalité'}")
+
+    print("\n=== Résultats de l'entraînement ===")
+    print(f"Total de parties : {training_amount}")
+    print(f"Victoires de l'IA intelligente : {ai_wins}")
+    print(f"Taux de victoire : {ai_wins / training_amount * 100:.2f}%")
 
 if(__name__ == '__main__'):
     
@@ -503,30 +567,5 @@ if(__name__ == '__main__'):
     playerB = CubeeAI("Bob")
     testmodel = CubeeGameModel(4, playerA, playerB)
     
-    previous_state = testmodel.create_state()
-    action = playerB.choose_action()
-    testmodel.move(playerB, action)
-    new_state = testmodel.create_state()
-    reward = playerB.calculate_reward(testmodel.player1_pos, testmodel.player2_pos)    
-    playerB.update_q_table(previous_state, action, reward, new_state)
-    
-    previous_state = testmodel.create_state()
-    action = playerB.choose_action()
-    testmodel.move(playerB, action)
-    new_state = testmodel.create_state()
-    reward = playerB.calculate_reward(testmodel.player1_pos, testmodel.player2_pos)    
-    playerB.update_q_table(previous_state, action, reward, new_state)
-    
-    previous_state = testmodel.create_state()
-    action = playerB.choose_action()
-    testmodel.move(playerB, action)
-    new_state = testmodel.create_state()
-    reward = playerB.calculate_reward(testmodel.player1_pos, testmodel.player2_pos)    
-    playerB.update_q_table(previous_state, action, reward, new_state)
-    
-    print("pos: ", testmodel.player1_pos, testmodel.player2_pos) 
-    print("action_value up: ", gameDAO.get_Qline_by_state(new_state).up_value)
-    print("action_value down: ",gameDAO.get_Qline_by_state(new_state).down_value)
-    print("action_value left: ",gameDAO.get_Qline_by_state(new_state).left_value)
-    print("action_value right: ",gameDAO.get_Qline_by_state(new_state).right_value)
+    training(testmodel, 50000)
 
