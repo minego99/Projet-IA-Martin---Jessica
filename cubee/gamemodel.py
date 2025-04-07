@@ -501,6 +501,7 @@ def training(model, training_amount, epsilon_rate):
     Arguments:
         - model : une instance de CubeeGameModel
         - training_amount : nombre de parties à jouer (INT)
+        - epsilon_rate : vitesse à laquelle le epsilon de l'IA ira varier
     """
     ai = None
     random_ai = None
