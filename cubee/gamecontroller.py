@@ -153,7 +153,7 @@ class CubeeGameController:
 if __name__ == '__main__':
     root = tk.Tk()
     root.title("Cubee Game")
-    playerA = CubeePlayer("Alice")
+    playerA = CubeeAI("Alice",epsilon = 0.9)
     playerB = CubeeHuman ("Bob")
     controller = CubeeGameController(root, playerA, playerB)
     root.mainloop()

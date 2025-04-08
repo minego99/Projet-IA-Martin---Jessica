@@ -176,7 +176,9 @@ class CircuitRaceFrame (CircuitFrame):
                 cell = tk.Label(self, bg=color, width=2, height=1, borderwidth=1, relief="solid")
                 cell.grid(row=line, column=col, sticky="nsew")
                 self.karts_cells.append(cell)
+    def display_end_game(self):
+        end_label = tk.Label(self.root, text="Player won", font=("Arial", 14))
+        end_label.pack()
 
-        
 
         

@@ -2,15 +2,15 @@
 """
 Created on Mon Feb 24 17:22:00 2025
 
-@author: marti
+@author: martin
 """
 import matches.gamemodel
-
 from matches.gamemodel import GameModel, Human, Player
 from matches.gamemodel import AI
 from matches.gameview import GameView
 from matches.gamecontroller import GameController
-from cubee.gamemodel import CubeeGameModel, CubeeHuman, CubeePlayer
+
+from cubee.gamemodel import CubeeGameModel, CubeeHuman, CubeeAI
 from cubee.gameview import CubeeGameView
 from cubee.gamecontroller import CubeeGameController
 
@@ -115,7 +115,7 @@ class MainFrame(tk.Frame):
         """
         root = tk.Tk()
         root.title("Cubee Game")
-        playerA = CubeePlayer("Alice")
+        playerA = CubeeAI("Alice",epsilon=0.9)
         playerB = CubeeHuman ("Bob")
         controller = CubeeGameController(root, playerA, playerB)
         print("Cubee")

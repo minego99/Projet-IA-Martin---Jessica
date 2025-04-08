@@ -7,12 +7,13 @@ Created on Fri Mar 28 10:06:11 2025
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, String, Float
 
 class Base(DeclarativeBase):
     pass
 
 engine = create_engine('sqlite:///cubee.db')
+
 # Création d'une session
 Session = sessionmaker(bind=engine)
 SESSION = Session()
@@ -63,6 +64,7 @@ class QLine (Base) :
             right_value = data.get('right_value'),
             
         )
+    
 def get_Qline_by_state(state):
     """
     récupère une Qline en fonction d'un id fourni
@@ -77,6 +79,7 @@ def get_Qline_by_state(state):
         SESSION.commit()
         
     return new_line
+Base.metadata.create_all(engine)
 
 def init_db():
     # Création des tables
@@ -96,11 +99,7 @@ def save_qline(Qline_dict):
      #   print("Erreur d'intégrité lors de la sauvegarde de QLine.")
 
 if __name__ =="__main__":
-     # init_db()
-     # debug = SESSION.query(QLine).all()
-     # print(len(debug))
-     # for val in debug:
-     #     print(val.id)
+
         
      q = {
         "state_id": "00;33;0;",
@@ -111,4 +110,3 @@ if __name__ =="__main__":
         }
         
      save_qline(q)
-   #  print(get_Qline_by_state(q["state_id"]).up_value)

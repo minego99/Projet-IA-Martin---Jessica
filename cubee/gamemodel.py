@@ -1,9 +1,5 @@
-import pytest
 import random
-import sqlite3
-import gameDAO
-#import gameDAO
-
+from cubee import gameDAO
 """
 La classe GameModel contient toute la logique des règles du jeu cubee
 Les valeurs renvoyées permettent à GameController de composer le statut du jeu
@@ -388,7 +384,10 @@ class CubeeAI(CubeePlayer):
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Récompenses futures
         self.epsilon = epsilon  # Exploration vs exploitation
+
         self.action_values = gameDAO.get_Qline_by_state("0")
+        print("test")
+        #initialisation de l'état de la partie initiale, impossible d'aller chercher le modèle avant qu'il soit assigné à l'IA donc un état "initial" est assigné 
     def choose_action(self):
         """Choisit une action selon une stratégie ε-greedy."""
         state_id = self.model.create_state()
@@ -544,7 +543,7 @@ def training(model, training_amount, epsilon_rate):
 
             model.switch_player()
             if(episode%1000 == 0):
-                  ai.epsilon += epsilon_rate / training_amount
+                  ai.epsilon += (epsilon_rate * ai.epsilon)/100
             if(episode%10000 == 0):
                   print("epsilon: ", ai.epsilon)
                   print(episode, " parties jouées")    
@@ -569,5 +568,5 @@ if(__name__ == '__main__'):
     playerB = CubeeAI("Bob")
     testmodel = CubeeGameModel(4, playerA, playerB)
     
-    training(testmodel, 50000, )
+    training(testmodel, 50000, 10)
 
