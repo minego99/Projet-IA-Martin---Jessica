@@ -11,13 +11,14 @@ gamemodel => gamevieuw => gamecontroller
  4) Valeurs retournées (avec type)
  5) Description des fonctionnalités supplémentaires de l'objet
 
+Requirement:
+- pytest: avec "pip install pytest" dans l'invite de commande
 
 Lancer les jeux :
 
 Deux options :
 - Lancer main.py directement et choisir le jeu souhaité dans le menu
-- Ou via le terminal, aller dans le dossier contenant le projet avec cd puis exécuter "python main.py
-"
+- Ou via le terminal, aller dans le dossier contenant le projet avec cd puis exécuter "python main.py"
 
 Pour lancer un exemple d'entraînement, compiler directement le script "gamemodel.py"
 
