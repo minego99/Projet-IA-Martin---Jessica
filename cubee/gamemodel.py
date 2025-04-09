@@ -4,7 +4,7 @@ from cubee import gameDAO
 La classe GameModel contient toute la logique des règles du jeu cubee
 Les valeurs renvoyées permettent à GameController de composer le statut du jeu
 La classe CubeePlayer comprend le comportement de l'IA aléatoire, et sa classe héritée celle du joueur humain
-La classe CubeeAI est pour l'IA intelligente, qui n'est pas implémentée pour l'instant
+La classe CubeeAI est pour l'IA intelligente utilisée dans le jeu lancé depuis le main
 """
 class CubeeGameModel():
     def __init__(self,dimension, playerA, playerB, displayable = False):
