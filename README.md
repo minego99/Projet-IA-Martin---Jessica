@@ -11,8 +11,6 @@ gamemodel => gamevieuw => gamecontroller
  4) Valeurs retournées (avec type)
  5) Description des fonctionnalités supplémentaires de l'objet
 
-Requirement:
-- pytest: avec "pip install pytest" dans l'invite de commande
 
 Lancer les jeux :
 
@@ -32,16 +30,19 @@ Cubee :
 
 Requirements:
 - SQL Alchemy, peut-être installé avec la commande "pip install SQLAlchemy" dans le cmd
+- pytest: avec "pip install pytest" dans l'invite de commande
 
 Règle du jeu :
-But :
-Posséder plus de cases que l’adversaire
-Déroulement :
+Déroulement:
 Deux joueurs s'affrontent sur un plateau carré d'une taille variable (5x5 cases par défaut).
 Un joueur gagne des cases en se déplaçant dessus.
 Au début de la partie, les joueurs commencent chacun dans un coin opposé du terrain. Chacun à leur tour, ils vont se déplacer d'une case (vers le haut, le bas, la gauche ou la droite). Un joueur ne peut pas se déplacer sur une case appartenant au joueur adverse ni sortir des limites du plateau.
 Si un joueur arrive à faire un enclos (bloquer l’accès à certaines cases pour l’adversaire), les cases de l'enclos appartiennent automatiquement au joueur qui les a bloquées.
 Le jeu s’arrête lorsqu’il ne reste plus de case libre.
+
+But :
+Posséder plus de cases que l’adversaire
+
 
 
 
