@@ -7,7 +7,6 @@ Created on Fri Apr 11 11:35:30 2025
 from model.kart import Kart
 from model.circuit import Circuit
 
-
 class game():
     """
     Classe reprennant la logique de l'interaction entre le circuit et un kart.
