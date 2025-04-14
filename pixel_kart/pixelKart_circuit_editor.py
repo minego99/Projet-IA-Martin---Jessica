@@ -75,6 +75,14 @@ class CircuitEditor(tk.Toplevel):
         # Frame to save
         save_frame = ttk.Frame(self)
         save_frame.pack(pady=5, fill="x")
+        
+        #Frame to load game
+        game_frame = ttk.Frame(self)
+        game_frame.pack(pady = 5, fill = "x")
+        
+        game_label = tk.Label(import_frame, text="Load game")
+        game_label.pack(side = "right")
+        
 
         save_button = ttk.Button(save_frame, text="Save", command=self.save_circuit)
         save_button.pack(side="left", padx=5)
@@ -161,7 +169,7 @@ class CircuitEditor(tk.Toplevel):
         self.grid_frame.cols = cols
         self.grid_frame.clear()
         self.grid_frame.init_cells()
-    
+
 
 if __name__ == "__main__":
     root = Tk()
