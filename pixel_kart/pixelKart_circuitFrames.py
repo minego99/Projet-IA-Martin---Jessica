@@ -71,7 +71,7 @@ class CircuitFrame(ttk.Frame):
             widget.destroy()
 
         self.cells.clear() 
-    
+
     
     def grid_to_dto(self):
         """
@@ -165,6 +165,7 @@ class CircuitRaceFrame (CircuitFrame):
             kart : dict : {position: color}
         """
         # Clear previous kart cells
+        print("update view")
         for cell in self.karts_cells:
             cell.destroy()
         self.karts_cells.clear()
@@ -180,5 +181,3 @@ class CircuitRaceFrame (CircuitFrame):
         end_label = tk.Label(self.root, text="Player won", font=("Arial", 14))
         end_label.pack()
 
-
-        
