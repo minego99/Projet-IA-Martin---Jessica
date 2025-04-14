@@ -256,8 +256,7 @@ class CubeeGameModel():
           #  print("queue len: ", len(queue))
             case = queue.pop()  # Défilement de la file
             x, y = case  # Récupération des coordonnées
-    
-         #   print("Processing:", case)
+
     
             # Vérification des 4 directions
             if y - 1 >= 0:  # LEFT
