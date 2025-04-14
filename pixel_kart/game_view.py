@@ -54,15 +54,27 @@ class GameEditor(Tk):
         
         launch_frame = tk.Frame(self)
         launch_frame.pack()
-        launch_game_button = tk.Button(launch_frame,text="Launch Game", command = None)
+        launch_game_button = tk.Button(launch_frame,text="Launch Game", command = self.launch_game)
         launch_game_button.pack()
-        
+    def launch_game(self):
+        selected_circuit = self.select_circuit.get()
+        loops = self.loops_count
+        is_human = self.against_human
+    
+        # Exemple minimal : passe des valeurs factices si nécessaire
+        GameInterface(
+            circuit=self.all_circuits.get(selected_circuit, None),
+            loops_count=loops,
+            against_human=is_human,
+            players=[None, None]
+        ).mainloop()
+
 class GameInterface(Tk):
     def __init__(self, circuit=None, loops_count=3, against_human=True, players=[None, None]):
         super().__init__()
 
         self.title("Game Interface")
-        self.geometry("800x300")  # Ajuste la taille si nécessaire
+        self.geometry("800x300")  
 
         self.circuit = circuit
         self.loops_count = loops_count
@@ -120,10 +132,13 @@ class GameInterface(Tk):
     def draw_grid(self):
         """
         affiche le terrain sélectionné dans l'éditeur de partie
+        le terrain est déjà envoyé dans la view comme une chaîne de caractères (interprétée d'abord par le modèle,
+        ensuite envoyé dans le view)
         """
         
         
 if __name__ == '__main__':
-    
-    newGame = GameInterface()
-    newGame.mainloop()
+    newEditor = GameEditor()
+    newEditor.mainloop()
+    # newGame = GameInterface()
+    # newGame.mainloop()
