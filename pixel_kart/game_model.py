@@ -4,10 +4,65 @@ Created on Fri Apr 11 11:35:30 2025
 
 @author: martin
 """
-from model.kart import Kart
-from model.circuit import Circuit
+class Kart:
+    """
+    Classe représentant un kart dans le jeu.
+    Attributs:
+        - position (tuple): position actuelle du kart (x, y)
+        - speed (int): vitesse actuelle du kart
+        - direction (str): direction actuelle ('up', 'down', 'left', 'right')
+        - laps_done (int): nombre de tours effectués
+        - has_crossed_line (bool): flag pour éviter d'ajouter plusieurs tours sur la ligne d'arrivée
+    """
+    def __init__(self, position=(0,0), speed=0, direction="right"):
+        self.position = position
+        self.speed = speed
+        self.direction = direction
+        self.laps_done = 0
+        self.has_crossed_line = False
 
-class game():
+    def predict_next_position(self):
+        x, y = self.position
+        if self.direction == "up":
+            return (x, y - 1)
+        elif self.direction == "down":
+            return (x, y + 1)
+        elif self.direction == "left":
+            return (x - 1, y)
+        elif self.direction == "right":
+            return (x + 1, y)
+        return self.position
+
+    def advance(self):
+        self.position = self.predict_next_position()
+
+    def decide_action(self):
+        pass  # À définir par l'IA ou les contrôles joueur
+
+    def update_position(self):
+        pass  # Peut inclure des animations, effets, etc.
+
+    def brake(self):
+        self.speed = 0
+
+
+class Circuit:
+    """
+    Classe représentant le circuit.
+    Attributs:
+        - grid (list de listes): représentation du circuit avec les types de terrain
+    """
+    def __init__(self, grid):
+        self.grid = grid
+
+    def get_terrain_type(self, position):
+        x, y = position
+        if 0 <= y < len(self.grid) and 0 <= x < len(self.grid[0]):
+            return self.grid[y][x]
+        return "wall"  # En dehors de la grille, considéré comme mur
+
+
+class Game():
     """
     Classe reprennant la logique de l'interaction entre le circuit et un kart.
     arguments:
