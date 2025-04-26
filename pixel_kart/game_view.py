@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import Tk, ttk
 
 
-class GameEditor(Tk):
+class GameEditor(tk.Toplevel):
     """
     Le Game Editor a pour but de paramétrer correctement la partie avec:
         - le choix de l'adversaire (un humain ou une IA)
@@ -16,20 +16,23 @@ class GameEditor(Tk):
         - le nombre de tours à finir avant la fin de la partie
         - le boutton de lanchement de jeu
     """
-    def __init__(self, game_list):
-        super().__init__()
+    def __init__(self, game_list, master):
+        super().__init__(master)
+        
+    
+       
         self.title("Game Settings")
         self.against_human = True
-        self.loops_count = 3
-        
-        
-        
+        self.loops_count = None
+    
         self.all_circuits = game_list
+        
         self.circuit_frame = tk.Frame(self)
         self.circuit_frame.pack(pady=5, fill="x")
         self.circuits_text = tk.Label(self.circuit_frame,text="circuits choice:")
         self.circuits_text.pack(side="left")
         self.select_circuit = tk.StringVar()
+        
         self.circuit_dropdown = tk.OptionMenu(self.circuit_frame, self.select_circuit, *list(self.all_circuits.keys()))
         self.circuit_dropdown.pack(side="left", padx=5)
         self.select_circuit.set(list(self.all_circuits.keys())[0] if self.all_circuits.keys() else "")
@@ -38,8 +41,9 @@ class GameEditor(Tk):
         
         self.options_frame = tk.Frame(self)
         self.options_frame.pack(pady=5, fill="x")
+        
+        
         ttk.Label(self.options_frame, text="Play against human: ").pack(side="left")
-
         C1 = ttk.Checkbutton(self.options_frame, text = "Human", variable = self.against_human, \
            onvalue = self.against_human == True, offvalue=self.against_human == False,  \
            width = 20, )
@@ -48,29 +52,52 @@ class GameEditor(Tk):
            width = 20)
         C1.pack()
         C2.pack()
+        
+        
         ttk.Label(self.options_frame, text="loops count:").pack(side="left", padx=5)
-        loops_entry = ttk.Entry(self.options_frame, textvariable="3", width=5)
-        loops_entry.pack(side="left")
+        self.loops_entry = ttk.Entry(self.options_frame, textvariable="3", width=5)
+        self.loops_entry.pack(side="left")
+        self.submit_callback = None  # le controller pourra donner une fonction
+    
+        button= ttk.Button(self.options_frame, text= "Submit game parameter", command=self.submit_game_parameters)
+        button.pack(side="left")
+
+
         
         launch_frame = tk.Frame(self)
         launch_frame.pack()
         launch_game_button = tk.Button(launch_frame,text="Launch Game", command = self.launch_game)
         launch_game_button.pack()
+        
+        
+
+
     def launch_game(self):
         selected_circuit = self.select_circuit.get()
-        loops = self.loops_count
         is_human = self.against_human
     
-        # Exemple minimal : passe des valeurs factices si nécessaire
         GameInterface(
             circuit=self.all_circuits.get(selected_circuit, None),
-            loops_count=loops,
+            loops_count=self.loops_count,
             against_human=is_human,
             players=[None, None]
         ).mainloop()
 
-class GameInterface(Tk):
-    def __init__(self, circuit=None, loops_count=3, against_human=True, players=[None, None]):
+
+   
+    def submit_game_parameters(self):
+        # Met à jour les attributs
+        self.loops_count = int(self.loops_entry.get())
+        self.against_human = True if self.against_human else False  # corriger au passage
+        selected_circuit = self.select_circuit.get()
+    
+        if self.submit_callback:
+            self.submit_callback(selected_circuit, self.loops_count, self.against_human)
+    
+        self.destroy()  # ferme la fenêtre une fois validé
+
+class GameInterface(tk.Toplevel):
+    def __init__(self, loops_count,circuit=None, against_human=True, players=[None, None]):
         super().__init__()
 
         self.title("Game Interface")
@@ -137,8 +164,8 @@ class GameInterface(Tk):
         """
         
         
-if __name__ == '__main__':
-    newEditor = GameEditor()
-    newEditor.mainloop()
+# if __name__ == '__main__':
+#     newEditor = GameEditor()
+#     newEditor.mainloop()
     # newGame = GameInterface()
     # newGame.mainloop()

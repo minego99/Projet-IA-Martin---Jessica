@@ -4,6 +4,9 @@ Created on Fri Apr 11 11:35:30 2025
 
 @author: martin
 """
+
+import pixelKart_dao as dao
+
 class Kart:
     """
     Classe représentant un kart dans le jeu.
@@ -69,7 +72,7 @@ class Game():
         - le nombre de tours pour gagner la partie(INT)
         - le nombre de tours déjà écoulés (INT)
     """
-    def __init__(self,laps,time,circuit = None, karts = None):
+    def __init__(self,laps = 0,time = 0,circuit = None, karts = None):
         self.laps = laps
         self.time = time
         self.circuit = circuit
@@ -180,3 +183,9 @@ class Game():
         Retourne le nombre de joueurs dans la partie.
         """
         return len(self.karts)
+    def get_all_circuits(self):
+        return dao.get_all()
+    def get_circuit(self, circuit_name):
+        for val in self.get_all_circuits():
+            if(circuit_name == str(val)):
+                return str(val)
