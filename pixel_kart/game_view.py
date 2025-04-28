@@ -95,7 +95,8 @@ class GameEditor(tk.Toplevel):
 
    
     def submit_game_parameters(self):
-        # Met à jour les attributs
+
+        
         self.loops_count = int(self.loops_entry.get())
         selected_circuit = self.select_circuit.get()
     
@@ -109,12 +110,12 @@ class GameInterface(tk.Toplevel):
         super().__init__()
 
         self.title("Game Interface")
-        self.geometry("800x300")  
+        self.geometry("800x600")  
 
         self.circuit = circuit
         
         self.grid_frame = tk.Frame(self)
-        self.grid_frame.pack()
+        self.grid_frame.pack(side="left")
         
 
         self.cells = []
@@ -199,8 +200,6 @@ class GameInterface(tk.Toplevel):
         """
         Affiche le circuit à partir d'une chaîne de caractères.
         """
-        for val in circuit:
-            print(val)
 
         import_data = circuit.split(",")
         if not import_data:
@@ -209,7 +208,6 @@ class GameInterface(tk.Toplevel):
     
         self.rows = len(import_data)
         self.cols = len(import_data[0])
-        print("cols: ", self.cols, "rows: ", self.rows)
         self.clear()
         self.init_cells()
     
@@ -218,7 +216,7 @@ class GameInterface(tk.Toplevel):
         for i, row in enumerate(import_data):
             for j, char in enumerate(row):
                 if i < len(self.cells) and j < len(self.cells[i]):
-                    color = color_map.get(char, "grey")  # Default to grey if unknown letter
+                    color = color_map.get(char, "grey")  # Si pas de lettre, mise au gris
                     self.cells[i][j].config(bg=color)
 
     def data_to_dto(self):

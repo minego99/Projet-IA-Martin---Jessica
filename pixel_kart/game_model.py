@@ -63,7 +63,15 @@ class Circuit:
         if 0 <= y < len(self.grid) and 0 <= x < len(self.grid[0]):
             return self.grid[y][x]
         return "wall"  # En dehors de la grille, considéré comme mur
-
+    
+    def get_start_positions(self):
+        finish_cells = []
+        for x in self.grid:
+            for y in x:
+                if(y == 'F'):
+                    finish_cells.append((x,y))
+        return finish_cells
+        
 
 class Game():
     """
@@ -77,7 +85,11 @@ class Game():
         self.time = time
         self.circuit = circuit
         self.karts = karts
+        self.submit_callback = None
         
+    def receive_model_data(self):
+        pass
+    
     def modify_player_movement(self, current_player: 'Kart'):
         """
         adapte le mouvement du joueur qui vient de se déplacer en fonction de la case sur laquelle il arrive
@@ -183,7 +195,10 @@ class Game():
         Retourne le nombre de joueurs dans la partie.
         """
         return len(self.karts)
+    
     def get_all_circuits(self):
         return dao.get_all()
+    
     def get_circuit(self, circuit_name):
         return dao.get_by_name(circuit_name)
+    

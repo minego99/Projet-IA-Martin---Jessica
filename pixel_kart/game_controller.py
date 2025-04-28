@@ -23,33 +23,44 @@ class GameManager:
         """       
         self.model = Game()
         self.root = tk.Tk()
-        self.root.withdraw()  # cache la fenêtre principale
-
+        
+        # cache la fenêtre principale
+        self.root.withdraw() 
         self.editor = GameEditor(master = self.root, game_list = self.model.get_all_circuits())
         self.editor.submit_callback = self.receive_editor_data
-
+        print(self.model.laps)
         self.root.mainloop()
         
-        self.launch_game()
+
     def receive_editor_data(self, circuit_name, loops_count, against_human):
         print(f"Circuit choisi: {circuit_name}")
         print(f"Nombre de tours: {loops_count}")
         print(f"Contre humain ?: {against_human}")
-        
-        
+    
+        # Initialiser correctement le modèle !
+        circuit = self.model.get_circuit(circuit_name)
+        if circuit is None:
+            print("Erreur : circuit introuvable")
+            return
+    
+        # Préparer les joueurs
+        players = [Kart(), Kart()]  # 2 joueurs par défaut
+    
+        self.model.circuit = circuit
+        self.model.laps = loops_count
+        self.model.karts = players
+    
+        self.model.start_game()
+    
+        # Créer la vue principale de jeu
         self.interface = GameInterface(
-            circuit=self.model.get_circuit(circuit_name),
+            circuit=circuit,
             loops_count=loops_count,
             against_human=against_human,
-            players=[None, None]
+            players=players
         )
 
-    def launch_game(self):
-        """
-        lancer le circuit editor
-        proposer le choix du circuit parmi la liste des circuits dispos
-        """
-        self.editor.Toplevel()
-        
+
+
 if __name__ == "__main__":
     new_manager = GameManager()
