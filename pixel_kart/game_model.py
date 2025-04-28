@@ -186,6 +186,4 @@ class Game():
     def get_all_circuits(self):
         return dao.get_all()
     def get_circuit(self, circuit_name):
-        for val in self.get_all_circuits():
-            if(circuit_name == str(val)):
-                return str(val)
+        return dao.get_by_name(circuit_name)

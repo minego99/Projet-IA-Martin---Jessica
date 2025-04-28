@@ -6,7 +6,7 @@ Created on Mon Apr 14 08:41:11 2025
 """
 import tkinter as tk
 from tkinter import Tk, ttk
-
+import const
 
 class GameEditor(tk.Toplevel):
     """
@@ -44,42 +44,51 @@ class GameEditor(tk.Toplevel):
         
         
         ttk.Label(self.options_frame, text="Play against human: ").pack(side="left")
-        C1 = ttk.Checkbutton(self.options_frame, text = "Human", variable = self.against_human, \
-           onvalue = self.against_human == True, offvalue=self.against_human == False,  \
-           width = 20, )
-        C2 = ttk.Checkbutton(self.options_frame, text = "AI", variable = self.against_human, \
-           onvalue = self.against_human == False, offvalue =self.against_human == True,  \
-           width = 20)
+
+        #Passage par un string car tkinter ne gère pas bien un booléen
+        self.against_human = tk.StringVar(value="Human")
+        
+        C1 = ttk.Radiobutton(
+            self.options_frame, 
+            text="Human", 
+            variable=self.against_human, 
+            value="Human",
+            command=self.print_choice
+        )
+        
+        C2 = ttk.Radiobutton(
+            self.options_frame, 
+            text="AI", 
+            variable=self.against_human, 
+            value="AI",
+            command=self.print_choice
+        )
+
         C1.pack()
         C2.pack()
-        
+        print("button return: ", self.against_human.get())
         
         ttk.Label(self.options_frame, text="loops count:").pack(side="left", padx=5)
         self.loops_entry = ttk.Entry(self.options_frame, textvariable="3", width=5)
         self.loops_entry.pack(side="left")
         self.submit_callback = None  # le controller pourra donner une fonction
     
-        button= ttk.Button(self.options_frame, text= "Submit game parameter", command=self.submit_game_parameters)
-        button.pack(side="left")
-
-
-        
+   
         launch_frame = tk.Frame(self)
         launch_frame.pack()
-        launch_game_button = tk.Button(launch_frame,text="Launch Game", command = self.launch_game)
+        launch_game_button = tk.Button(launch_frame,text="Launch Game", command = self.submit_game_parameters)
         launch_game_button.pack()
-        
-        
 
-
+    def print_choice(self):
+        print("button return: ", self.against_human.get())
+    
     def launch_game(self):
         selected_circuit = self.select_circuit.get()
-        is_human = self.against_human
-    
+        print("is human : ", self.against_human.get())
         GameInterface(
             circuit=self.all_circuits.get(selected_circuit, None),
             loops_count=self.loops_count,
-            against_human=is_human,
+            against_human=self.against_human.get(),
             players=[None, None]
         ).mainloop()
 
@@ -88,31 +97,39 @@ class GameEditor(tk.Toplevel):
     def submit_game_parameters(self):
         # Met à jour les attributs
         self.loops_count = int(self.loops_entry.get())
-        self.against_human = True if self.against_human else False  # corriger au passage
         selected_circuit = self.select_circuit.get()
     
         if self.submit_callback:
-            self.submit_callback(selected_circuit, self.loops_count, self.against_human)
+            self.submit_callback(selected_circuit, self.loops_count, self.against_human.get())
     
-        self.destroy()  # ferme la fenêtre une fois validé
+        #self.destroy()  # ferme la fenêtre une fois validé
 
 class GameInterface(tk.Toplevel):
-    def __init__(self, loops_count,circuit=None, against_human=True, players=[None, None]):
+    def __init__(self, loops_count,against_human,circuit=None,players=[None, None]):
         super().__init__()
 
         self.title("Game Interface")
         self.geometry("800x300")  
 
         self.circuit = circuit
+        
+        self.grid_frame = tk.Frame(self)
+        self.grid_frame.pack()
+        
+
+        self.cells = []
+        if circuit:
+            self.draw_grid(circuit)
+        
         self.loops_count = loops_count
         self.against_human = against_human
         self.players = players
 
-        # Frame principale pour contenir tous les panneaux côte à côte
+
         self.main_frame = tk.Frame(self)
         self.main_frame.pack(fill='both', expand=True)
 
-        # Frame pour les infos de la course
+
         self.race_frame = tk.Frame(self.main_frame, bg="lightgrey", width=200)
         self.race_frame.pack(side='left', fill='y')
 
@@ -126,10 +143,25 @@ class GameInterface(tk.Toplevel):
         self.draw_player_inputs(self.players[0], is_left=False)
 
         # Frame pour le joueur 2 (humain ou IA)
-        if self.against_human:
+        if self.against_human == "Human":
             self.draw_player_inputs(self.players[1], is_left=False)
         else:
             self.draw_player_infos(self.players[1], is_left=False)
+
+        self.draw_grid(circuit)        
+
+
+        
+    def init_cells(self):
+        self.cells = []
+        print("rows: ", self.rows, " cols: ", self.cols)
+        for i in range(self.rows):
+            row = []
+            for j in range(self.cols):
+                cell = tk.Label(self.grid_frame, width=2, height=1, borderwidth=1, relief="solid")
+                cell.grid(row=i, column=j)
+                row.append(cell)
+            self.cells.append(row)
 
     def draw_player_infos(self, player, is_left=True):
         frame = tk.Frame(self.main_frame, bg="white", width=200)
@@ -143,7 +175,7 @@ class GameInterface(tk.Toplevel):
     def draw_player_inputs(self, player, is_left=True):
 
 
-        # Puis les inputs dans une frame séparée
+
         input_frame = tk.Frame(self.main_frame, bg="lightblue", width=200)
         input_frame.pack(side='left' if is_left else 'right', fill='y')
 
@@ -153,17 +185,53 @@ class GameInterface(tk.Toplevel):
         tk.Button(input_frame, text="Turn right", command=None, bg="blue").pack()
         tk.Button(input_frame, text="Brake", command=None, bg="red").pack()
         tk.Button(input_frame, text="Skip", command=None, bg="purple").pack()
-        # D'abord les infos
+
         self.draw_player_infos(player, is_left)
-        
-    def draw_grid(self):
+    
+    
+    def clear(self):
+        for widget in self.grid_frame.winfo_children():
+            widget.destroy()
+        self.cells.clear()
+
+
+    def draw_grid(self, circuit):
         """
-        affiche le terrain sélectionné dans l'éditeur de partie
-        le terrain est déjà envoyé dans la view comme une chaîne de caractères (interprétée d'abord par le modèle,
-        ensuite envoyé dans le view)
+        Affiche le circuit à partir d'une chaîne de caractères.
         """
-        
-        
+        for val in circuit:
+            print(val)
+
+        import_data = circuit.split(",")
+        if not import_data:
+            print("No circuit found")
+            return
+    
+        self.rows = len(import_data)
+        self.cols = len(import_data[0])
+        print("cols: ", self.cols, "rows: ", self.rows)
+        self.clear()
+        self.init_cells()
+    
+        color_map = dict((v["letter"], v["color"]) for v in const.PIXEL_TYPES.values())
+    
+        for i, row in enumerate(import_data):
+            for j, char in enumerate(row):
+                if i < len(self.cells) and j < len(self.cells[i]):
+                    color = color_map.get(char, "grey")  # Default to grey if unknown letter
+                    self.cells[i][j].config(bg=color)
+
+    def data_to_dto(self):
+        """
+        Return the grid as a string look like "rgc,rgc,rgc".
+        """
+        export_result = []
+        color_map = dict((v["color"], v["letter"]) for v in const.PIXEL_TYPES.values())
+        for row in self.cells:
+            export_result.append("".join(color_map[cell.cget("bg")] for cell in row))
+        return ",".join(export_result)
+    
+    
 # if __name__ == '__main__':
 #     newEditor = GameEditor()
 #     newEditor.mainloop()

@@ -51,7 +51,7 @@ class CircuitEditor(tk.Toplevel):
         ttk.Label(input_frame, text="Width:").pack(side="left", padx=5)
         width_entry = ttk.Entry(input_frame, textvariable=self.width_var, width=5)
         width_entry.pack(side="left")
-        # Buttun to change size
+        # Button to change size
         change_size_button = ttk.Button(input_frame, text="Change size", command=self.change_size)
         change_size_button.pack(side="left", padx=5)
 

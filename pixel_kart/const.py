@@ -12,3 +12,4 @@ PLAYER_TYPES = {
     "PLAYER2":{"color":"blue","letter":"2"},
     "PLAYER3":{"color":"pink","letter":"3"}
     }
+
