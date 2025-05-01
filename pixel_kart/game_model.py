@@ -20,9 +20,12 @@ class Kart:
     def __init__(self, position=(0,0), speed=0, direction="right"):
         self.position = position
         self.speed = speed
-        self.direction = direction
         self.laps_done = 0
         self.has_crossed_line = False
+        self.directions = ["left","up","right","down"]
+        
+        # la gestion de la direction se fait par l'index de la liste de la direction (0 pour la gauche, 1 pour le haut, 2 pour la droite et 3 pour le bas)
+        self.direction = direction
 
     def predict_next_position(self):
         x, y = self.position
@@ -66,10 +69,11 @@ class Circuit:
     
     def get_start_positions(self):
         finish_cells = []
-        for x in self.grid:
-            for y in x:
-                if(y == 'F'):
-                    finish_cells.append((x,y))
+        for y, row in enumerate(self.grid):
+            for x, cell in enumerate(row):
+                if cell == 'F':
+                    finish_cells.append((x, y))
+
         return finish_cells
         
 
@@ -83,12 +87,11 @@ class Game():
     def __init__(self,laps = 0,time = 0,circuit = None, karts = None):
         self.laps = laps
         self.time = time
-        self.circuit = circuit
+        self.circuit = dao.get_circuit_grid("Basic")
         self.karts = karts
+        self.current_kart = 0
         self.submit_callback = None
         
-    def receive_model_data(self):
-        pass
     
     def modify_player_movement(self, current_player: 'Kart'):
         """
@@ -105,11 +108,16 @@ class Game():
             True -> le joueur a déjà validé un tour en étant sur la ligne : on n'ajoute plus rien tant qu’il ne quitte pas la ligne
         """
         # Vérifie la direction et la vitesse du joueur
-        for i in range(current_player.speed):
-            # Prévoir la prochaine position
-            next_pos = current_player.predict_next_position()
-            terrain = self.circuit.get_terrain_type(next_pos)
+        print("test terrain 1")
 
+        for i in range(self.get_current_kart().speed):
+            # Prévoir la prochaine position
+            print("test terrain 2")
+            next_pos = current_player.predict_next_position()
+            print("test terrain 3")
+
+            terrain = self.circuit.get_terrain_type(next_pos)
+            print("terrain: ",terrain)
             if terrain == "road":
                 current_player.advance()
 
@@ -131,10 +139,10 @@ class Game():
                 current_player.advance()  # Avance même sur la ligne
             else:
                 current_player.advance()
-
-        # Si le joueur quitte la ligne d’arrivée, on réinitialise le flag
-        if terrain != "finish_line":
-            current_player.has_crossed_line = False
+    
+            # Si le joueur quitte la ligne d’arrivée, on réinitialise le flag
+            if terrain != "finish_line":
+                current_player.has_crossed_line = False
 
     
     def start_game(self):
@@ -200,5 +208,33 @@ class Game():
         return dao.get_all()
     
     def get_circuit(self, circuit_name):
-        return dao.get_by_name(circuit_name)
+        return dao.get_circuit_grid(circuit_name)
+
+    def get_finish_lines(self):
+        """
+        Retourne une liste des positions (x, y) où le circuit contient une case 'F' (finish line).
+        """
+        finish_lines = []
+        for y, row in enumerate(self.circuit):
+            for x, char in enumerate(row):
+                if char == 'F':
+                    finish_lines.append((x, y))
+        print("finish line debug: ", finish_lines)
+        return finish_lines
+
+    def accelerate(self, current_kart):
+        current_kart.speed += 1
+        
+    def switch_current_kart(self):
+        self.current_kart -= 1
+        
+    def get_current_kart(self):
+        return self.karts[self.current_kart]
     
+    def turn(self, current_kart, movement):
+       new_direction_index = self.get_current_kart().directions.index(self.get_current_kart().direction) + movement
+       
+       if(new_direction_index >= 4):
+            new_direction_index = 0
+       current_kart.direction = self.get_current_kart().directions[new_direction_index]
+       print(current_kart.direction)

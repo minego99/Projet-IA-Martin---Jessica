@@ -20,7 +20,6 @@ class GameEditor(tk.Toplevel):
         super().__init__(master)
         
     
-       
         self.title("Game Settings")
         self.against_human = True
         self.loops_count = None
@@ -96,31 +95,25 @@ class GameEditor(tk.Toplevel):
    
     def submit_game_parameters(self):
 
-        
         self.loops_count = int(self.loops_entry.get())
         selected_circuit = self.select_circuit.get()
     
         if self.submit_callback:
             self.submit_callback(selected_circuit, self.loops_count, self.against_human.get())
     
-        #self.destroy()  # ferme la fenêtre une fois validé
-
 class GameInterface(tk.Toplevel):
-    def __init__(self, loops_count,against_human,circuit=None,players=[None, None]):
+    def __init__(self, controller, loops_count,against_human,circuit=None,players=[None, None]):
         super().__init__()
 
+        self.controller = controller
         self.title("Game Interface")
         self.geometry("800x600")  
+        self.cells = []
 
         self.circuit = circuit
         
         self.grid_frame = tk.Frame(self)
         self.grid_frame.pack(side="left")
-        
-
-        self.cells = []
-        if circuit:
-            self.draw_grid(circuit)
         
         self.loops_count = loops_count
         self.against_human = against_human
@@ -140,7 +133,7 @@ class GameInterface(tk.Toplevel):
         self.loop_to_do_text = tk.Label(self.race_frame, text=f'Turns to do: {self.loops_count}')
         self.loop_to_do_text.pack()
 
-        # Frame pour le joueur 1 (humain ou IA)
+        # Frame pour le joueur 1 (humain)
         self.draw_player_inputs(self.players[0], is_left=False)
 
         # Frame pour le joueur 2 (humain ou IA)
@@ -149,8 +142,7 @@ class GameInterface(tk.Toplevel):
         else:
             self.draw_player_infos(self.players[1], is_left=False)
 
-        self.draw_grid(circuit)        
-
+        self.draw_grid(circuit, players)        
 
         
     def init_cells(self):
@@ -181,14 +173,17 @@ class GameInterface(tk.Toplevel):
         input_frame.pack(side='left' if is_left else 'right', fill='y')
 
         tk.Label(input_frame, text="Play").pack()
-        tk.Button(input_frame, text="Accelerate", command=None, bg="green").pack()
-        tk.Button(input_frame, text="Turn left", command=None, bg="blue").pack()
-        tk.Button(input_frame, text="Turn right", command=None, bg="blue").pack()
-        tk.Button(input_frame, text="Brake", command=None, bg="red").pack()
+        tk.Button(input_frame, text="Accelerate", command=self.controller.accelerate_kart, bg="green").pack()
+        tk.Button(input_frame, text="Turn left", command=lambda: self.controller.model.turn(self.controller.model.karts[0], -1), bg="blue").pack()
+        tk.Button(input_frame, text="Turn right", command=lambda: self.controller.model.turn(self.controller.model.karts[0], 1), bg="blue").pack()
+
+        tk.Button(input_frame, text="Brake", command=lambda: self.controller.model.karts[self.controller.model.current_kart].brake, bg="red").pack()
         tk.Button(input_frame, text="Skip", command=None, bg="purple").pack()
 
         self.draw_player_infos(player, is_left)
-    
+
+                
+        
     
     def clear(self):
         for widget in self.grid_frame.winfo_children():
@@ -196,28 +191,35 @@ class GameInterface(tk.Toplevel):
         self.cells.clear()
 
 
-    def draw_grid(self, circuit):
+    def draw_grid(self, grid,players):
         """
-        Affiche le circuit à partir d'une chaîne de caractères.
+        Affiche le circuit à partir d'une grille 2D de caractères.
+        Chaque caractère représente un type de terrain.
+        
+        Arguments:
+            grid (list[list[str]]): Grille du circuit
         """
-
-        import_data = circuit.split(",")
-        if not import_data:
-            print("No circuit found")
+        if not grid:
+            print("No circuit data")
             return
     
-        self.rows = len(import_data)
-        self.cols = len(import_data[0])
+        self.rows = len(grid)
+        self.cols = len(grid[0]) if grid else 0
         self.clear()
         self.init_cells()
     
         color_map = dict((v["letter"], v["color"]) for v in const.PIXEL_TYPES.values())
     
-        for i, row in enumerate(import_data):
+        for i, row in enumerate(grid):
             for j, char in enumerate(row):
                 if i < len(self.cells) and j < len(self.cells[i]):
-                    color = color_map.get(char, "grey")  # Si pas de lettre, mise au gris
+                    color = color_map.get(char, "grey")  # Si lettre inconnue, met en gris
                     self.cells[i][j].config(bg=color)
+        
+        for elem in players:
+            #type(elem) = Kart
+            #accéder à la position du kart
+            self.cells[elem.position[1]][elem.position[0]].config(bg="red")
 
     def data_to_dto(self):
         """

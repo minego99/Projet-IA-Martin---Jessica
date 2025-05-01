@@ -50,3 +50,26 @@ def update_circuit(name, string):
     with open(FILE_PATH, "w", encoding="utf-8") as file:
         for circuit_name in circuits:
             file.write(circuit_name + "\n")
+            
+def get_circuit_grid(name):
+    """
+    Retourne la grille (2D) du circuit à partir de son nom.
+    
+    Arguments:
+        name (str): nom du circuit
+    
+    Retourne:
+        list[list[str]]: grille du circuit
+    """
+    encoded = get_by_name(name)
+    if not encoded:
+        raise ValueError(f"Circuit '{name}' introuvable.")
+    
+    # Nettoyage et découpage de la chaîne en lignes
+    encoded = encoded.strip()
+    rows = encoded.split(",")
+    
+    # Convertir chaque ligne en liste de caractères
+    grid = [list(row) for row in rows]
+    
+    return grid
