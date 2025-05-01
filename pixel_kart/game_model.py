@@ -87,7 +87,7 @@ class Game():
     def __init__(self,laps = 0,time = 0,circuit = None, karts = None):
         self.laps = laps
         self.time = time
-        self.circuit = dao.get_circuit_grid("Basic")
+        self.circuit = Circuit(dao.get_circuit_grid("Basic"))
         self.karts = karts
         self.current_kart = 0
         self.submit_callback = None
@@ -108,13 +108,11 @@ class Game():
             True -> le joueur a déjà validé un tour en étant sur la ligne : on n'ajoute plus rien tant qu’il ne quitte pas la ligne
         """
         # Vérifie la direction et la vitesse du joueur
-        print("test terrain 1")
+      
 
         for i in range(self.get_current_kart().speed):
             # Prévoir la prochaine position
-            print("test terrain 2")
             next_pos = current_player.predict_next_position()
-            print("test terrain 3")
 
             terrain = self.circuit.get_terrain_type(next_pos)
             print("terrain: ",terrain)
@@ -208,22 +206,20 @@ class Game():
         return dao.get_all()
     
     def get_circuit(self, circuit_name):
-        return dao.get_circuit_grid(circuit_name)
+        return Circuit(dao.get_circuit_grid(circuit_name))
 
     def get_finish_lines(self):
         """
         Retourne une liste des positions (x, y) où le circuit contient une case 'F' (finish line).
         """
         finish_lines = []
-        for y, row in enumerate(self.circuit):
+        for y, row in enumerate(self.circuit.grid):
             for x, char in enumerate(row):
                 if char == 'F':
                     finish_lines.append((x, y))
         print("finish line debug: ", finish_lines)
         return finish_lines
 
-    def accelerate(self, current_kart):
-        current_kart.speed += 1
         
     def switch_current_kart(self):
         self.current_kart -= 1

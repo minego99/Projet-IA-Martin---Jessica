@@ -60,19 +60,20 @@ class GameManager:
             players=self.model.karts
         )
         
-    def accelerate_kart(self):
+    def move_kart(self, does_accelerate):
         kart = self.model.karts[self.model.current_kart]
-        
+        if(does_accelerate):
+            kart.speed += 1
             # Appliquer les contraintes de mouvement
-        self.model.modify_player_movement(self.model.current_kart)
+        self.model.modify_player_movement(self.model.get_current_kart())
         
             # Obtenir la position cible
         next_x, next_y = kart.predict_next_position()
         
             # Vérifier si la case est dans les limites du circuit
-        if 0 <= next_x < len(self.model.circuit) and 0 <= next_y < len(self.model.circuit[0]):
+        if 0 <= next_x < len(self.model.circuit.grid) and 0 <= next_y < len(self.model.circuit.grid[0]):
                 # Vérifier que la case est praticable (tu peux ajouter d'autres conditions si besoin)
-            if self.model.circuit[next_y][next_x] != "X":  # Supposons que "X" est un mur
+            if self.model.circuit.grid[next_y][next_x] != "X":  # Supposons que "X" est un mur
                     # Mettre à jour la position
                 kart.position = (next_x, next_y)
         

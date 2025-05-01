@@ -161,6 +161,7 @@ class GameInterface(tk.Toplevel):
         frame.pack(side='left' if is_left else 'right', fill='y')
 
         tk.Label(frame, text='Kart').pack()
+        tk.Label(frame, text= str(self.controller.model.current_kart))
         tk.Label(frame, text='Direction: ').pack()
         tk.Label(frame, text='Speed: ').pack()
         tk.Label(frame, text='Turns done: ').pack()
@@ -173,12 +174,12 @@ class GameInterface(tk.Toplevel):
         input_frame.pack(side='left' if is_left else 'right', fill='y')
 
         tk.Label(input_frame, text="Play").pack()
-        tk.Button(input_frame, text="Accelerate", command=self.controller.accelerate_kart, bg="green").pack()
+        tk.Button(input_frame, text="Accelerate", command=lambda: self.controller.move_kart(does_accelerate = True), bg="green").pack()
         tk.Button(input_frame, text="Turn left", command=lambda: self.controller.model.turn(self.controller.model.karts[0], -1), bg="blue").pack()
         tk.Button(input_frame, text="Turn right", command=lambda: self.controller.model.turn(self.controller.model.karts[0], 1), bg="blue").pack()
 
         tk.Button(input_frame, text="Brake", command=lambda: self.controller.model.karts[self.controller.model.current_kart].brake, bg="red").pack()
-        tk.Button(input_frame, text="Skip", command=None, bg="purple").pack()
+        tk.Button(input_frame, text="Skip",command=lambda: self.controller.move_kart(does_accelerate = False), bg="purple").pack()
 
         self.draw_player_infos(player, is_left)
 
@@ -191,7 +192,7 @@ class GameInterface(tk.Toplevel):
         self.cells.clear()
 
 
-    def draw_grid(self, grid,players):
+    def draw_grid(self, circuit,players):
         """
         Affiche le circuit à partir d'une grille 2D de caractères.
         Chaque caractère représente un type de terrain.
@@ -199,18 +200,18 @@ class GameInterface(tk.Toplevel):
         Arguments:
             grid (list[list[str]]): Grille du circuit
         """
-        if not grid:
+        if not circuit:
             print("No circuit data")
             return
     
-        self.rows = len(grid)
-        self.cols = len(grid[0]) if grid else 0
+        self.rows = len(circuit.grid)
+        self.cols = len(circuit.grid[0]) if circuit.grid else 0
         self.clear()
         self.init_cells()
     
         color_map = dict((v["letter"], v["color"]) for v in const.PIXEL_TYPES.values())
     
-        for i, row in enumerate(grid):
+        for i, row in enumerate(circuit.grid):
             for j, char in enumerate(row):
                 if i < len(self.cells) and j < len(self.cells[i]):
                     color = color_map.get(char, "grey")  # Si lettre inconnue, met en gris
