@@ -107,10 +107,11 @@ class Game():
         - le nombre de tours déjà écoulés (INT)
     """
     def __init__(self,laps = 0,time = 0,circuit = None, karts = None):
-        self.laps = laps
+        self.current_player_index = 0  # Joueur 0 commence par défaut
+        self.total_laps = total_laps
         self.time = time
         self.circuit = Circuit(dao.get_circuit_grid("Basic"))
-        self.karts = karts
+        self.karts = [Kart(), Kart()]  # Exemple de deux joueurs
         self.current_kart = 0
         self.submit_callback = None
         
@@ -163,6 +164,22 @@ class Game():
             # Si le joueur quitte la ligne d’arrivée, on réinitialise le flag
             if terrain != "finish_line":
                 current_player.has_crossed_line = False
+            
+            # Mise à jour des informations sur le kart du joueur actuel
+            current_kart.update_position()
+
+            # Vérifier si le joueur a franchi la ligne d'arrivée et compléter un tour
+            if current_kart.reached_finish_line():
+                current_kart.loops_done += 1
+                print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_kart.loops_done}/{self.total_laps})")
+
+            # Vérifier si le joueur a terminé tous ses tours
+            if current_kart.loops_done >= self.total_laps:
+                self.end_game()
+                return
+
+            # Passer au joueur suivant
+            self.switch_player()
 
     
     def start_game(self):
@@ -172,6 +189,11 @@ class Game():
         for kart in self.karts:
             kart.speed = 0
             kart.direction = "right"
+    
+    def end_game(self):
+        """Déclare la fin de la partie et le gagnant."""
+        winner = self.karts[self.current_player_index]
+        print(f"Le joueur {self.current_player_index + 1} a gagné !")
     
     def step(self):
         """
@@ -255,6 +277,10 @@ class Game():
         inverse le joueur actuel
         """
         self.current_kart -= 1
+    
+    def switch_player(self):
+        self.current_player_index = 1 - self.current_player_index # alterner entre les joueurs
+
         
     def get_current_kart(self):
         """

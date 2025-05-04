@@ -32,12 +32,19 @@ Cubee :
 PixelKart: 
 
     Déroulement: 
-        Les 2 (ou 3) joueurs commencent sur un circuit prédifini sur la ligne d'arrivée. Chacun des joueurs (humain ou IA) joueront à leur tour, avec plusieurs actions à leur disposition. Les joueurs commencent avec une vitesse de 0 et une orientation vers l'Est. À chaque début de son tour, le kart avance dans sa direction le nombre de cases dans sa direction actuelle. Les joueurs peuvent:
-            - accélerer (augmenter la vitesse de 1)
-            - freiner (diminuer la vitesse de 1 avec un minimum de -1)
-            - tourner à gauche/droite(changer son orientation pour son accélération ex: d'Est vers Nord ou Sud, ou encore de Sud vers Est ou Ouest). 
+        Les 2 (ou 3) joueurs commencent sur un circuit prédéfini à la ligne d'arrivée. Chaque joueur (humain ou IA) joue à son tour, avec plusieurs actions possibles :
+            - Accélérer (augmenter la vitesse de 1).
+            - Freiner (diminuer la vitesse de 1, avec un minimum de -1).
+            - Tourner à gauche/droite (changer l'orientation pour son accélération, par exemple : d’Est vers Nord ou Sud, ou encore de Sud vers Est ou Ouest).
+        Les joueurs commencent avec une vitesse de 0 et une orientation vers l'Est.
+        À chaque début de tour, le kart avance dans sa direction actuelle le nombre de cases correspondantes.
+        Un tour est terminé lorsque le joueur passe correctement la ligne d'arrivée.
+        Les informations des joueurs (vitesse, direction, tours réalisés) sont visibles durant la partie pour chaque joueur.
+        L'alternance entre les joueurs se fait à chaque action.
+    
     But: 
-        Le but est de faire un certain nombre de tours de circuit (choisi à l'avance) et d'atteindre la ligne d'arrivée par le côté gauche.
+       Faire un certain nombre de tours de circuit (choisi à l'avance) et atteindre la ligne d'arrivée par le côté gauche avant l'autre joueur.
+       La partie se termine une fois que tous les tours ont été effectués. Le joueur qui a fait le plus de tours (ou qui a réussi à franchir la ligne d'arrivée) gagne.
 
 ## Contribution
 
