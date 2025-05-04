@@ -15,6 +15,7 @@ class GameEditor(tk.Toplevel):
         - le choix du circuit
         - le nombre de tours à finir avant la fin de la partie
         - le boutton de lanchement de jeu
+    Gère aussi le lancement d'une fenêtre supperposée sans casser l'éditeur de partie
     """
     def __init__(self, game_list, master):
         super().__init__(master)
@@ -79,9 +80,15 @@ class GameEditor(tk.Toplevel):
         launch_game_button.pack()
 
     def print_choice(self):
+        """
+        Fonction de debug, pour vérifier le retour d'un bouton ne fonctionnant pas toujours correctement
+        """
         print("button return: ", self.against_human.get())
     
     def launch_game(self):
+        """
+        Lance l'interface de la partie, à l'aide des informations du GameEditor lancé
+        """
         selected_circuit = self.select_circuit.get()
         print("is human : ", self.against_human.get())
         GameInterface(
@@ -94,6 +101,9 @@ class GameEditor(tk.Toplevel):
 
    
     def submit_game_parameters(self):
+        """
+        Fonction de callback, convertissant les données nécessaires pour l'interface de jeu
+        """
 
         self.loops_count = int(self.loops_entry.get())
         selected_circuit = self.select_circuit.get()
@@ -102,7 +112,23 @@ class GameEditor(tk.Toplevel):
             self.submit_callback(selected_circuit, self.loops_count, self.against_human.get())
     
 class GameInterface(tk.Toplevel):
+
     def __init__(self, controller, loops_count,against_human,circuit=None,players=[None, None]):
+        """
+        Interface de jeu, affichant les boutons, les informations de la partie ainsi que le circuit avec les karts joueurs
+        hérite de:
+            - Toplevel, permet de lancer des fenêtres tkinter superposées
+        arguments:
+            - gestionnaire de la partie (GAMEMANAGER)
+            - nombre de tours (INT)
+            - choix du joueur de jouer contre un humain ou une IA (BOOL)
+            - circuit choisi par le joueur
+            - les deux joueurs dans la partie
+        affiche les deux sets de bouttons seulement si le joueur veut joueur contre un humain
+        affiche aussi les données de chaque kart (vitesse, orientation, tours restants)
+        Dessine la grille de pixels représentant le circuit avec les karts dessus
+        """
+        
         super().__init__()
 
         self.controller = controller
@@ -146,6 +172,9 @@ class GameInterface(tk.Toplevel):
 
         
     def init_cells(self):
+        """
+        dessine la grille de pixels en fonction des dimensions du circuit
+        """
         self.cells = []
         print("rows: ", self.rows, " cols: ", self.cols)
         for i in range(self.rows):
@@ -157,6 +186,12 @@ class GameInterface(tk.Toplevel):
             self.cells.append(row)
 
     def draw_player_infos(self, player, is_left=True):
+        """
+        affiche les informations propre à un joueur
+        arguments:
+            - le joueur concerné (KART)
+            - l'alignement de ses informations sur le canvas (gauche/droite) (BOOL)
+        """
         frame = tk.Frame(self.main_frame, bg="white", width=200)
         frame.pack(side='left' if is_left else 'right', fill='y')
 
@@ -168,7 +203,12 @@ class GameInterface(tk.Toplevel):
 
     def draw_player_inputs(self, player, is_left=True):
 
-
+        """
+        affiche les bouttons utilisable par le joueur
+        arguments:
+            - Le joueur concerné (KART)
+            - l'alignement de ses bouttons sur le canvas (gauche/droite) (BOOL)
+        """
 
         input_frame = tk.Frame(self.main_frame, bg="lightblue", width=200)
         input_frame.pack(side='left' if is_left else 'right', fill='y')
@@ -187,6 +227,9 @@ class GameInterface(tk.Toplevel):
         
     
     def clear(self):
+        """
+        Fonction permettant de supprimer tout le contenu dans un canvas
+        """
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
         self.cells.clear()
@@ -197,8 +240,9 @@ class GameInterface(tk.Toplevel):
         Affiche le circuit à partir d'une grille 2D de caractères.
         Chaque caractère représente un type de terrain.
         
-        Arguments:
-            grid (list[list[str]]): Grille du circuit
+        arguments:
+            - objet circuit, utilisé pour obtenir sa grille contenant la couleur de toutes les cases (CIRCUIT)
+            - liste comprenant les deux joueurs pour pouvoir les afficher (KART)
         """
         if not circuit:
             print("No circuit data")
@@ -224,12 +268,14 @@ class GameInterface(tk.Toplevel):
 
     def data_to_dto(self):
         """
-        Return the grid as a string look like "rgc,rgc,rgc".
+        Converti La matrice du circuit en une chaîne de caractères
         """
         export_result = []
         color_map = dict((v["color"], v["letter"]) for v in const.PIXEL_TYPES.values())
+        
         for row in self.cells:
             export_result.append("".join(color_map[cell.cget("bg")] for cell in row))
+            
         return ",".join(export_result)
     
     

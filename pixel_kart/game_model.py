@@ -28,6 +28,10 @@ class Kart:
         self.direction = direction
 
     def predict_next_position(self):
+        """
+        renvoie:
+            - la nouvelle valeur à assigner à la position du kart en fonction de son orientation ([INT,INT])
+        """
         x, y = self.position
         if self.direction == "up":
             return (x, y - 1)
@@ -40,6 +44,9 @@ class Kart:
         return self.position
 
     def advance(self):
+        """
+        modifie la position en fonction du déplacement voulu 
+        """
         self.position = self.predict_next_position()
 
     def decide_action(self):
@@ -49,6 +56,9 @@ class Kart:
         pass  # Peut inclure des animations, effets, etc.
 
     def brake(self):
+        """
+        annule la vitesse d'un kart
+        """
         self.speed = 0
 
 
@@ -62,12 +72,24 @@ class Circuit:
         self.grid = grid
 
     def get_terrain_type(self, position):
+        """
+        à partir d'une position donnée, permet d'obtenir le caractère inscrit à cette position
+        argument:
+            - la positon donnée [INT, INT]
+        renvoie:
+            - le caractère de la position et si la position n'est pas dans le circuit, renvoie le charactère du mur (CHAR)
+        """
         x, y = position
         if 0 <= y < len(self.grid) and 0 <= x < len(self.grid[0]):
             return self.grid[y][x]
-        return "wall"  # En dehors de la grille, considéré comme mur
+        return "W"  # En dehors de la grille, considéré comme mur
     
     def get_start_positions(self):
+        """
+        Parcoure l'entièreté du circuit pour obtenir la ligne d'arrivée
+        renvoie:
+            - les positions des cases de ligne d'arrivée ([(INT,INT)])
+        """
         finish_cells = []
         for y, row in enumerate(self.grid):
             for x, cell in enumerate(row):
@@ -198,14 +220,21 @@ class Game():
     
     def player_count(self):
         """
-        Retourne le nombre de joueurs dans la partie.
+        Retourne le nombre de joueurs dans la partie (INT)
         """
         return len(self.karts)
     
     def get_all_circuits(self):
+        """
+        renvoie:
+            tous les circuits du fichier enregistré ([☺STRING])
+        """
         return dao.get_all()
     
     def get_circuit(self, circuit_name):
+        """
+        renvoie un circuit en fonction de celui intégré au fichier enregistré (CIRCUIT)
+        """
         return Circuit(dao.get_circuit_grid(circuit_name))
 
     def get_finish_lines(self):
@@ -222,15 +251,29 @@ class Game():
 
         
     def switch_current_kart(self):
+        """
+        inverse le joueur actuel
+        """
         self.current_kart -= 1
         
     def get_current_kart(self):
+        """
+        retourne:
+            - le joueur actuel (KART)
+        """
         return self.karts[self.current_kart]
     
     def turn(self, current_kart, movement):
-       new_direction_index = self.get_current_kart().directions.index(self.get_current_kart().direction) + movement
+        """
+        modifie l'orientation du kart, en fonction du mouvement inséré
+        arguments:
+            - le joueur actuel (KART)
+            - le mouvement (1 vers la droite, -1 vers la gauche)(INT)
+        utilise une liste reprennant les orientations et décale un index en fonction du mouvement
+        """
+        new_direction_index = self.get_current_kart().directions.index(self.get_current_kart().direction) + movement
        
-       if(new_direction_index >= 4):
+        if(new_direction_index >= 4):
             new_direction_index = 0
-       current_kart.direction = self.get_current_kart().directions[new_direction_index]
-       print(current_kart.direction)
+        current_kart.direction = self.get_current_kart().directions[new_direction_index]
+        print(current_kart.direction)
