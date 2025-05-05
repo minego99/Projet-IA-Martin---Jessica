@@ -261,21 +261,16 @@ class GameInterface(tk.Toplevel):
                     color = color_map.get(char, "grey")  # Si lettre inconnue, met en gris
                     self.cells[i][j].config(bg=color)
         
-        for elem in players:
-            #type(elem) = Kart
-            #accéder à la position du kart
-            self.cells[elem.position[1]][elem.position[0]].config(bg="red")
+        # for elem in players:
+        #     #type(elem) = Kart
+        #     #accéder à la position du kart
+        #     self.cells[elem.position[1]][elem.position[0]].config(bg="red")
         
         # Affiche les karts
-        for i, kart in enumerate(self.model.karts):
+        for i, kart in enumerate(self.controller.model.karts):
             color = "red" if i == 0 else "blue"
-            self.canvas.create_oval(
-                kart.position[0] * self.cell_size,
-                kart.position[1] * self.cell_size,
-                (kart.position[0] + 1) * self.cell_size,
-                (kart.position[1] + 1) * self.cell_size,
-                fill=color
-            )
+            self.cells[kart.position[1]][kart.position[0]].config(bg=color)
+
 
 
     def data_to_dto(self):
