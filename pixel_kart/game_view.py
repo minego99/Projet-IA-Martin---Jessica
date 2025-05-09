@@ -214,12 +214,12 @@ class GameInterface(tk.Toplevel):
         input_frame.pack(side='left' if is_left else 'right', fill='y')
 
         tk.Label(input_frame, text="Play").pack()
-        tk.Button(input_frame, text="Accelerate", command=lambda: self.controller.move_kart(does_accelerate = True), bg="green").pack()
-        tk.Button(input_frame, text="Turn left", command=lambda: self.controller.model.turn(self.controller.model.karts[0], -1), bg="blue").pack()
-        tk.Button(input_frame, text="Turn right", command=lambda: self.controller.model.turn(self.controller.model.karts[0], 1), bg="blue").pack()
+        tk.Button(input_frame, text="Accelerate", command=lambda: self.controller.move_kart(acceleration = 1), bg="green").pack()
+        tk.Button(input_frame, text="Turn left", command=lambda: self.controller.turn_kart(-1), bg="blue").pack()
+        tk.Button(input_frame, text="Turn right", command=lambda: self.controller.turn_kart(1), bg="blue").pack()
 
-        tk.Button(input_frame, text="Brake", command=lambda: self.controller.model.karts[self.controller.model.current_kart].brake, bg="red").pack()
-        tk.Button(input_frame, text="Skip",command=lambda: self.controller.move_kart(does_accelerate = False), bg="purple").pack()
+        tk.Button(input_frame, text="Brake", command=lambda: self.controller.move_kart(acceleration = -1), bg="red").pack()
+        tk.Button(input_frame, text="Skip",command=lambda: self.controller.move_kart(acceleration = 0), bg="purple").pack()
 
         self.draw_player_infos(player, is_left)
 

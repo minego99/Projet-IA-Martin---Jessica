@@ -177,7 +177,9 @@ class Game():
             if current_player.laps_done >= self.total_laps:
                 self.end_game()
                 return
-
+        # if(self.get_current_kart().speed == -1):
+            
+                
 
     
     def start_game(self):
@@ -299,3 +301,4 @@ class Game():
             new_direction_index = 0
         current_kart.direction = self.get_current_kart().directions[new_direction_index]
         print(current_kart.direction)
+        

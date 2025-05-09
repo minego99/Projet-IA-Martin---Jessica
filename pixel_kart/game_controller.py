@@ -75,7 +75,7 @@ class GameManager:
             players=self.model.karts
         )
         
-    def move_kart(self, does_accelerate):
+    def move_kart(self, acceleration):
         """
         Gère le déplacement d'un kart
         arguments:
@@ -86,9 +86,12 @@ class GameManager:
         Et redessine la grille pour afficher le kart correctement
         """
         kart = self.model.karts[self.model.current_kart]
-        if(does_accelerate and kart.speed < 2):
-            kart.speed += 1
-            # Appliquer les contraintes de mouvement
+        kart.speed += acceleration
+        if(kart.speed > 2):
+            kart.speed = 2
+        if(kart.speed < -1):
+            kart.speed = -1
+        # Appliquer les contraintes de mouvement
         self.model.modify_player_movement(self.model.get_current_kart())
         
         next_x, next_y = kart.predict_next_position()
@@ -104,7 +107,12 @@ class GameManager:
         
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)
+        
+    def turn_kart(self, movement):
+        kart = self.model.karts[self.model.current_kart]
 
+        self.model.turn(kart,movement)
+        self.move_kart(False)
         
 
 if __name__ == "__main__":

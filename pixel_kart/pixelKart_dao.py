@@ -6,7 +6,6 @@ def get_all():
     """Retrieve all circuits from the file as a dictionary {name: str}."""
     circuits = {}
     if os.path.exists(FILE_PATH):
-        print("test")
         with open(FILE_PATH, "r", encoding="utf-8") as file:
             for line in file:
                 name,circuit = line.split(":")
