@@ -73,3 +73,6 @@ def get_circuit_grid(name):
     grid = [list(row) for row in rows]
     
     return grid
+
+if( __name__ == "__main__"):
+    print(get_circuit_grid("Basic"))
