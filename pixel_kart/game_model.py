@@ -5,7 +5,7 @@ Created on Fri Apr 11 11:35:30 2025
 @author: martin
 """
 
-import pixelKart_dao as dao
+import pixel_kart.pixelKart_dao as dao
 
 class Kart:
     """
@@ -111,7 +111,7 @@ class Game():
         self.total_laps = laps
         self.time = time
         self.circuit = Circuit(dao.get_circuit_grid("Basic"))
-        self.karts = [Kart(), Kart()]  # Exemple de deux joueurs
+        self.karts = [Kart()]
         self.current_kart = 0
         self.submit_callback = None
         
@@ -131,7 +131,7 @@ class Game():
             True -> le joueur a déjà validé un tour en étant sur la ligne : on n'ajoute plus rien tant qu’il ne quitte pas la ligne
         """
         # Vérifie la direction et la vitesse du joueur
-      
+        print("laps done: ",current_player.laps_done, "total laps: ", self.total_laps)
 
         for i in range(self.get_current_kart().speed):
             # Prévoir la prochaine position
@@ -178,8 +178,6 @@ class Game():
                 self.end_game()
                 return
 
-            # Passer au joueur suivant
-            self.switch_player()
 
     
     def start_game(self):
@@ -278,8 +276,6 @@ class Game():
         """
         self.current_kart -= 1
     
-    def switch_player(self):
-        self.current_player_index = 1 - self.current_player_index # alterner entre les joueurs
 
         
     def get_current_kart(self):

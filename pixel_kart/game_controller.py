@@ -4,9 +4,9 @@ Created on Mon Apr 14 08:41:23 2025
 
 @author: martin
 """
-from game_view import GameEditor, GameInterface
+from pixel_kart.game_view import GameEditor, GameInterface
 import tkinter as tk
-from game_model import Kart, Circuit, Game
+from pixel_kart.game_model import Kart, Circuit, Game
 import random
 
 class GameManager:
@@ -32,7 +32,8 @@ class GameManager:
         
         self.editor = GameEditor(master = self.root, game_list = self.model.get_all_circuits())
         self.editor.submit_callback = self.receive_editor_data
-        
+        if(self.editor.against_AI):
+            self.model.karts.append(Kart())
         #partie éxécutée dès le lancement du jeu
         self.root.mainloop()
         
@@ -58,16 +59,19 @@ class GameManager:
     
         self.model.circuit = self.model.get_circuit(circuit_name)
         self.model.laps = loops_count        
-        self.model.karts = [Kart(position=random.choice(self.model.get_finish_lines())), Kart(position=random.choice(self.model.get_finish_lines()))]
+        self.model.karts = [Kart(position=random.choice(self.model.get_finish_lines()))]
+        if(self.editor.against_AI.get() != "Human"):
+            self.model.karts.append(Kart(position=random.choice(self.model.get_finish_lines())))
         
         self.model.start_game()
     
         # Créer la vue principale de jeu
         self.interface = GameInterface(
+            
             controller=self,
             circuit=self.model.circuit,
             loops_count=loops_count,
-            against_human=against_human,
+            against_AI=against_human,
             players=self.model.karts
         )
         
@@ -82,7 +86,7 @@ class GameManager:
         Et redessine la grille pour afficher le kart correctement
         """
         kart = self.model.karts[self.model.current_kart]
-        if(does_accelerate):
+        if(does_accelerate and kart.speed < 2):
             kart.speed += 1
             # Appliquer les contraintes de mouvement
         self.model.modify_player_movement(self.model.get_current_kart())

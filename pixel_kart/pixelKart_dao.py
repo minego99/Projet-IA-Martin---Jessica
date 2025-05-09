@@ -1,11 +1,12 @@
 import os
 
-FILE_PATH = "circuits.txt"
+FILE_PATH = "pixel_kart/circuits.txt"
 
 def get_all():
     """Retrieve all circuits from the file as a dictionary {name: str}."""
     circuits = {}
     if os.path.exists(FILE_PATH):
+        print("test")
         with open(FILE_PATH, "r", encoding="utf-8") as file:
             for line in file:
                 name,circuit = line.split(":")
@@ -75,4 +76,4 @@ def get_circuit_grid(name):
     return grid
 
 if( __name__ == "__main__"):
-    print(get_circuit_grid("Basic"))
+    print(get_all())

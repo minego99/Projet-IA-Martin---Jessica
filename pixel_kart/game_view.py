@@ -6,7 +6,7 @@ Created on Mon Apr 14 08:41:11 2025
 """
 import tkinter as tk
 from tkinter import Tk, ttk
-import const
+import pixel_kart.const
 
 class GameEditor(tk.Toplevel):
     """
@@ -22,7 +22,7 @@ class GameEditor(tk.Toplevel):
         
     
         self.title("Game Settings")
-        self.against_human = True
+        self.against_AI = False
         self.loops_count = None
     
         self.all_circuits = game_list
@@ -43,15 +43,15 @@ class GameEditor(tk.Toplevel):
         self.options_frame.pack(pady=5, fill="x")
         
         
-        ttk.Label(self.options_frame, text="Play against human: ").pack(side="left")
+        ttk.Label(self.options_frame, text="Play against AI: ").pack(side="left")
 
         #Passage par un string car tkinter ne gère pas bien un booléen
-        self.against_human = tk.StringVar(value="Human")
+        self.against_AI = tk.StringVar(value="Human")
         
         C1 = ttk.Radiobutton(
             self.options_frame, 
             text="Human", 
-            variable=self.against_human, 
+            variable=self.against_AI, 
             value="Human",
             command=self.print_choice
         )
@@ -59,14 +59,14 @@ class GameEditor(tk.Toplevel):
         C2 = ttk.Radiobutton(
             self.options_frame, 
             text="AI", 
-            variable=self.against_human, 
+            variable=self.against_AI, 
             value="AI",
             command=self.print_choice
         )
 
         C1.pack()
         C2.pack()
-        print("button return: ", self.against_human.get())
+        print("button return: ", self.against_AI.get())
         
         ttk.Label(self.options_frame, text="loops count:").pack(side="left", padx=5)
         self.loops_entry = ttk.Entry(self.options_frame, textvariable="3", width=5)
@@ -83,19 +83,19 @@ class GameEditor(tk.Toplevel):
         """
         Fonction de debug, pour vérifier le retour d'un bouton ne fonctionnant pas toujours correctement
         """
-        print("button return: ", self.against_human.get())
+        print("button return: ", self.against_AI.get())
     
     def launch_game(self):
         """
         Lance l'interface de la partie, à l'aide des informations du GameEditor lancé
         """
         selected_circuit = self.select_circuit.get()
-        print("is human : ", self.against_human.get())
+        print("against AI : ", self.against_AI.get())
         GameInterface(
             circuit=self.all_circuits.get(selected_circuit, None),
             loops_count=self.loops_count,
-            against_human=self.against_human.get(),
-            players=[None, None]
+            against_AI=self.against_AI.get(),
+            players=[None]
         ).mainloop()
 
 
@@ -109,11 +109,11 @@ class GameEditor(tk.Toplevel):
         selected_circuit = self.select_circuit.get()
     
         if self.submit_callback:
-            self.submit_callback(selected_circuit, self.loops_count, self.against_human.get())
+            self.submit_callback(selected_circuit, self.loops_count, self.against_AI.get())
     
 class GameInterface(tk.Toplevel):
 
-    def __init__(self, controller, loops_count,against_human,circuit=None,players=[None, None]):
+    def __init__(self, controller, loops_count,against_AI,circuit=None,players=[None, None]):
         """
         Interface de jeu, affichant les boutons, les informations de la partie ainsi que le circuit avec les karts joueurs
         hérite de:
@@ -130,8 +130,9 @@ class GameInterface(tk.Toplevel):
         """
         
         super().__init__()
-
         self.controller = controller
+        print("kart count: ",len(self.controller.model.karts))
+
         self.title("Game Interface")
         self.geometry("800x600")  
         self.cells = []
@@ -142,7 +143,8 @@ class GameInterface(tk.Toplevel):
         self.grid_frame.pack(side="left")
         
         self.loops_count = loops_count
-        self.against_human = against_human
+        self.controller.model.total_laps = loops_count
+        self.against_AI = against_AI
         self.players = players
 
 
@@ -163,9 +165,7 @@ class GameInterface(tk.Toplevel):
         self.draw_player_inputs(self.players[0], is_left=False)
 
         # Frame pour le joueur 2 (humain ou IA)
-        if self.against_human == "Human":
-            self.draw_player_inputs(self.players[1], is_left=False)
-        else:
+        if self.against_AI != "Human":
             self.draw_player_infos(self.players[1], is_left=False)
 
         self.draw_grid(circuit, players)        
@@ -253,21 +253,17 @@ class GameInterface(tk.Toplevel):
         self.clear()
         self.init_cells()
     
-        color_map = dict((v["letter"], v["color"]) for v in const.PIXEL_TYPES.values())
+        color_map = dict((v["letter"], v["color"]) for v in pixel_kart.const.PIXEL_TYPES.values())
     
         for i, row in enumerate(circuit.grid):
             for j, char in enumerate(row):
                 if i < len(self.cells) and j < len(self.cells[i]):
                     color = color_map.get(char, "grey")  # Si lettre inconnue, met en gris
                     self.cells[i][j].config(bg=color)
-        
-        # for elem in players:
-        #     #type(elem) = Kart
-        #     #accéder à la position du kart
-        #     self.cells[elem.position[1]][elem.position[0]].config(bg="red")
-        
+         
         # Affiche les karts
         for i, kart in enumerate(self.controller.model.karts):
+            print("kart count: ",len(self.controller.model.karts))
             color = "red" if i == 0 else "blue"
             self.cells[kart.position[1]][kart.position[0]].config(bg=color)
 
@@ -278,7 +274,7 @@ class GameInterface(tk.Toplevel):
         Converti La matrice du circuit en une chaîne de caractères
         """
         export_result = []
-        color_map = dict((v["color"], v["letter"]) for v in const.PIXEL_TYPES.values())
+        color_map = dict((v["color"], v["letter"]) for v in pixel_kart.const.PIXEL_TYPES.values())
         
         for row in self.cells:
             export_result.append("".join(color_map[cell.cget("bg")] for cell in row))

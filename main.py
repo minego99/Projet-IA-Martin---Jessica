@@ -14,9 +14,14 @@ from cubee.gamemodel import CubeeGameModel, CubeeHuman, CubeeAI
 from cubee.gameview import CubeeGameView
 from cubee.gamecontroller import CubeeGameController
 
+
+from pixel_kart.game_controller import GameManager
+from pixel_kart.game_model import Game,Circuit, Kart
+from pixel_kart.game_view import GameEditor, GameInterface
 import random
 from tkinter import *
 import tkinter as tk
+
 
 
 class App(tk.Tk):
@@ -125,6 +130,7 @@ class MainFrame(tk.Frame):
         Lance PixelKart
         """
         print("PixelKart")
+        controller = GameManager()
 
 
 if __name__ == "__main__":
