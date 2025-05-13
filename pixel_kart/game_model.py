@@ -42,7 +42,19 @@ class Kart:
         elif self.direction == "right":
             return (x + 1, y)
         return self.position
-
+    
+    def reverse_next_position(self):
+        x, y = self.position
+        if self.direction == "up":
+            return (x, y + 1)
+        elif self.direction == "down":
+            return (x, y - 1)
+        elif self.direction == "left":
+            return (x + 1, y)
+        elif self.direction == "right":
+            return (x - 1, y)
+        return self.position
+    
     def advance(self):
         """
         modifie la position en fonction du déplacement voulu 
@@ -132,56 +144,45 @@ class Game():
         """
         # Vérifie la direction et la vitesse du joueur
         print("laps done: ",current_player.laps_done, "total laps: ", self.total_laps)
-
-        for i in range(self.get_current_kart().speed):
+        for i in range(current_player.speed):
+            print("i: ", i , " scurrent speed: ", current_player.speed)
             # Prévoir la prochaine position
             next_pos = current_player.predict_next_position()
 
             terrain = self.circuit.get_terrain_type(next_pos)
             print("terrain: ",terrain)
-            if terrain == "road":
+
+            if terrain == "R":
                 current_player.advance()
 
-            if terrain == "grass" and i % 2 == 0:
+            elif terrain == "G" and i % 2 == 0:
+
                 # Si terrain = herbe, et selon la condition, diminuer la vitesse et avancer
                 if i % 2 == 0:
                     current_player.advance()
                 
-            elif terrain == "wall":
+            elif terrain == "W":
+
                 # Si terrain = mur, arrêter la voiture
                 current_player.speed = 0
-                continue # On vérifie les autres cases mais sans avancer
 
-            elif terrain == "finish_line" and current_player.direction == 'right' and current_player.speed > 0:
+            elif terrain == "F" and current_player.direction == 'right' and current_player.speed > 0:
+
                 # Vérifie si on entre sur la ligne d’arrivée par la gauche et validation du tour une seule fois, même si le joueur reste plusieurs pas de vitesse sur la case "finish_line".
                 if current_player.direction == "right" and not current_player.has_crossed_line:
                    current_player.laps_done += 1
                    current_player.has_crossed_line = True
                 current_player.advance()  # Avance même sur la ligne
-            else:
-                current_player.advance()
-    
-            # Si le joueur quitte la ligne d’arrivée, on réinitialise le flag
-            if terrain != "finish_line":
-                current_player.has_crossed_line = False
-            
-            # Mise à jour des informations sur le kart du joueur actuel
-            current_player.update_position()
+                print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_player.laps_done}/{self.total_laps})")
 
-            # Vérifier si le joueur a franchi la ligne d'arrivée et compléter un tour
-            if current_player.has_crossed_line:
-                current_player.loops_done += 1
-                print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_player.loops_done}/{self.total_laps})")
+ 
 
             # Vérifier si le joueur a terminé tous ses tours
             if current_player.laps_done >= self.total_laps:
                 self.end_game()
-                return
-        # if(self.get_current_kart().speed == -1):
-            
-                
 
-    
+                return
+      
     def start_game(self):
         """
         Démarre le jeu avec la voiture à une vitesse de 0 et la direction vers la droite.

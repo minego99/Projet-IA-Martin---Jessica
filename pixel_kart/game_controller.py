@@ -94,16 +94,6 @@ class GameManager:
         # Appliquer les contraintes de mouvement
         self.model.modify_player_movement(self.model.get_current_kart())
         
-        next_x, next_y = kart.predict_next_position()
-        
-        # Vérifier si la case est dans les limites du circuit
-        if 0 <= next_x < len(self.model.circuit.grid) and 0 <= next_y < len(self.model.circuit.grid[0]):
-            
-                # Vérifier que la case est un mur
-            if self.model.circuit.grid[next_y][next_x] != "W": 
-                
-                # Mettre à jour la position
-                kart.position = (next_x, next_y)
         
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)

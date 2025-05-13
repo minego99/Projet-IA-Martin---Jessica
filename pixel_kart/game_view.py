@@ -187,19 +187,40 @@ class GameInterface(tk.Toplevel):
 
     def draw_player_infos(self, player, is_left=True):
         """
-        affiche les informations propre à un joueur
-        arguments:
-            - le joueur concerné (KART)
-            - l'alignement de ses informations sur le canvas (gauche/droite) (BOOL)
+        Affiche les informations propre à un joueur
         """
         frame = tk.Frame(self.main_frame, bg="white", width=200)
         frame.pack(side='left' if is_left else 'right', fill='y')
-
+    
+        # Stocke la frame dans un attribut pour pouvoir la supprimer ensuite
+        if is_left:
+            self.player_info_frame_left = frame
+        else:
+            self.player_info_frame_right = frame
+    
         tk.Label(frame, text='Kart').pack()
-        tk.Label(frame, text= str(self.controller.model.current_kart))
+        tk.Label(frame, text='Player').pack()
+    
+        tk.Label(frame, text=str(self.controller.model.current_kart)).pack()
         tk.Label(frame, text='Direction: ').pack()
+        tk.Label(frame, text=self.controller.model.get_current_kart().direction).pack()
+    
         tk.Label(frame, text='Speed: ').pack()
+        tk.Label(frame, text=self.controller.model.get_current_kart().speed).pack()
+    
         tk.Label(frame, text='Turns done: ').pack()
+        tk.Label(frame, text=self.controller.model.get_current_kart().laps_done).pack()
+
+        
+    def remove_player_infos(self, is_left=True):
+        if is_left and hasattr(self, 'player_info_frame_left') and self.player_info_frame_left:
+            self.player_info_frame_left.destroy()
+            self.player_info_frame_left = None
+        elif not is_left and hasattr(self, 'player_info_frame_right') and self.player_info_frame_right:
+            self.player_info_frame_right.destroy()
+            self.player_info_frame_right = None
+
+        
 
     def draw_player_inputs(self, player, is_left=True):
 
@@ -214,18 +235,43 @@ class GameInterface(tk.Toplevel):
         input_frame.pack(side='left' if is_left else 'right', fill='y')
 
         tk.Label(input_frame, text="Play").pack()
-        tk.Button(input_frame, text="Accelerate", command=lambda: self.controller.move_kart(acceleration = 1), bg="green").pack()
-        tk.Button(input_frame, text="Turn left", command=lambda: self.controller.turn_kart(-1), bg="blue").pack()
-        tk.Button(input_frame, text="Turn right", command=lambda: self.controller.turn_kart(1), bg="blue").pack()
+        tk.Button(input_frame, text="Accelerate", command=self.on_accelerate,bg="green").pack()
+        tk.Button(input_frame, text="Turn left", command= self.play_turn_left, bg="blue").pack()
+        tk.Button(input_frame, text="Turn right", command=self.play_turn_right, bg="blue").pack()
 
-        tk.Button(input_frame, text="Brake", command=lambda: self.controller.move_kart(acceleration = -1), bg="red").pack()
-        tk.Button(input_frame, text="Skip",command=lambda: self.controller.move_kart(acceleration = 0), bg="purple").pack()
+        tk.Button(input_frame, text="Brake", command=self.play_brake, bg="red").pack()
+        tk.Button(input_frame, text="Skip",command= self.play_skip, bg="purple").pack()
 
         self.draw_player_infos(player, is_left)
-
-                
         
+    def on_accelerate(self):
+        self.remove_player_infos(is_left=True)
+        self.controller.move_kart(acceleration=1)
+        self.draw_player_infos(self.players[0], is_left=True)
     
+        
+                
+    def play_turn_left(self):
+        self.remove_player_infos(is_left=True)
+        self.controller.turn_kart(-1)
+        self.draw_player_infos(self.players[0], is_left=True)
+                
+    def play_turn_right(self):
+        
+        self.remove_player_infos(is_left=True)
+        self.controller.turn_kart(1)
+        self.draw_player_infos(self.players[0], is_left=True)
+                
+    def play_brake(self):
+        self.remove_player_infos(is_left=True)
+        self.controller.move_kart(acceleration=-1)
+        self.draw_player_infos(self.players[0], is_left=True)
+        
+    def play_skip(self):
+        self.remove_player_infos(is_left=True)
+        self.controller.move_kart(acceleration=0)
+        self.draw_player_infos(self.players[0], is_left=True)
+        
     def clear(self):
         """
         Fonction permettant de supprimer tout le contenu dans un canvas
