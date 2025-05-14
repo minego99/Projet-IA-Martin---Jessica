@@ -169,9 +169,7 @@ class Game():
             elif terrain == "F" and current_player.direction == 'right' and current_player.speed > 0:
 
                 # Vérifie si on entre sur la ligne d’arrivée par la gauche et validation du tour une seule fois, même si le joueur reste plusieurs pas de vitesse sur la case "finish_line".
-                if current_player.direction == "right" and not current_player.has_crossed_line:
-                   current_player.laps_done += 1
-                   current_player.has_crossed_line = True
+                current_player.laps_done += 1
                 current_player.advance()  # Avance même sur la ligne
                 print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_player.laps_done}/{self.total_laps})")
 
@@ -182,7 +180,22 @@ class Game():
                 self.end_game()
 
                 return
-      
+        if(current_player.speed == -1):
+            #à modifier si on veut de l'évolutivité
+            next_pos = current_player.reverse_next_position()
+            terrain = self.circuit.get_terrain_type(next_pos)
+            if(terrain in ["R","G"]):
+                current_player.position = current_player.reverse_next_position()
+            elif terrain == "W":
+                current_player.speed = 0
+            elif terrain == "F":
+                current_player.position = current_player.reverse_next_position()
+
+                if current_player.direction == "left":
+                    # Vérifie si on entre sur la ligne d’arrivée par la gauche et validation du tour une seule fois, même si le joueur reste plusieurs pas de vitesse sur la case "finish_line".
+                    current_player.laps_done += 1
+                    print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_player.laps_done}/{self.total_laps})")
+          
     def start_game(self):
         """
         Démarre le jeu avec la voiture à une vitesse de 0 et la direction vers la droite.
