@@ -97,7 +97,7 @@ class GameManager:
         
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)
-        kart.laps_done += 1
+        
     def turn_kart(self, movement):
         kart = self.model.karts[self.model.current_kart]
 

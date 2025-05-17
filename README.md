@@ -31,11 +31,16 @@ Cubee :
 
 PixelKart: 
 
+    Pour lancer le jeu, passer par le script main.
+    Le main ouvre un éditeur de partie. Vous pouvez y choisir le circuit enregistré, si la partie doit se dérouler avec une IA ou pas (IA pas encore présente). 
+    Ainsi que le nombre de tours prévus pour la partie. 
+
     Déroulement: 
-        Les 2 (ou 3) joueurs commencent sur un circuit prédéfini à la ligne d'arrivée. Chaque joueur (humain ou IA) joue à son tour, avec plusieurs actions possibles :
-            - Accélérer (augmenter la vitesse de 1).
+        Le joueur commence sur un circuit prédéfini à la ligne d'arrivée. Chaque joueur (humain ou IA) joue à son tour, avec plusieurs actions possibles :
+            - Accélérer (augmenter la vitesse de 1, avec un max de 2).
             - Freiner (diminuer la vitesse de 1, avec un minimum de -1).
             - Tourner à gauche/droite (changer l'orientation pour son accélération, par exemple : d’Est vers Nord ou Sud, ou encore de Sud vers Est ou Ouest).
+            - attendre (le kart avance selon sa vitesse et dans sa direction actuelle)
         Les joueurs commencent avec une vitesse de 0 et une orientation vers l'Est.
         À chaque début de tour, le kart avance dans sa direction actuelle le nombre de cases correspondantes.
         Un tour est terminé lorsque le joueur passe correctement la ligne d'arrivée.
