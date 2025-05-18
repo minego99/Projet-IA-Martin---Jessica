@@ -32,8 +32,8 @@ Cubee :
 PixelKart: 
 
     Pour lancer le jeu, passer par le script main.
-    Le main ouvre un éditeur de partie. Vous pouvez y choisir le circuit enregistré, si la partie doit se dérouler avec une IA ou pas (IA pas encore présente). 
-    Ainsi que le nombre de tours prévus pour la partie. 
+    Le main ouvre un éditeur de partie. Vous pouvez y choisir le circuit enregistré, le nombre de tours prévus (obligatoire pour lancer le jeu), ainsi que le choix de lancer le jeu seul ou avec une IA (au comportement aléatoire pour l'instant). 
+    
 
     Déroulement: 
         Le joueur commence sur un circuit prédéfini à la ligne d'arrivée. Chaque joueur (humain ou IA) joue à son tour, avec plusieurs actions possibles :
@@ -44,8 +44,9 @@ PixelKart:
         Les joueurs commencent avec une vitesse de 0 et une orientation vers l'Est.
         À chaque début de tour, le kart avance dans sa direction actuelle le nombre de cases correspondantes.
         Un tour est terminé lorsque le joueur passe correctement la ligne d'arrivée.
-        Les informations des joueurs (vitesse, direction, tours réalisés) sont visibles durant la partie pour chaque joueur.
-        L'alternance entre les joueurs se fait à chaque action.
+        Les informations des joueurs (vitesse, direction, tours réalisés, actions jouées (au total)) sont visibles durant la partie pour chaque joueur.
+        
+        
     
     But: 
        Faire un certain nombre de tours de circuit (choisi à l'avance) et atteindre la ligne d'arrivée par le côté gauche avant l'autre joueur.
@@ -64,6 +65,4 @@ Le projet Pixelkart est encore en cours de construction
 ## TODO
 
 - Les enclos de Cubee ne s'affichent pas et ne s'effectuent pas tout le temps
-- le main ne peut pas lancer pixelkart
-- pixelkart ne contient ni logique, ni retour visuel
 - il n'y a pas de gestion de la base de données dans pixelkart
