@@ -20,7 +20,7 @@ class QLine(Base):
     brake = Column(Float, nullable=True)
     turn_left = Column(Float, nullable=True)
     turn_right = Column(Float, nullable=True)
-    nothing = Column(Float, nullable=True)
+    do_nothing = Column(Float, nullable=True)
 
     def to_dto(self):
         return {
@@ -29,7 +29,7 @@ class QLine(Base):
             'brake': self.brake,
             'turn_left': self.turn_left,
             'turn_right': self.turn_right,
-            'nothing': self.nothing
+            'do_nothing': self.do_nothing
         }
 
     @classmethod
@@ -40,7 +40,7 @@ class QLine(Base):
             brake=data.get("brake"),
             turn_left=data.get("turn_left"),
             turn_right=data.get("turn_right"),
-            nothing=data.get("nothing")
+            do_nothing=data.get("do_nothing")
         )
 
 # Fonction d'encodage de l'état
@@ -84,7 +84,7 @@ def get_Qline_by_state(state):
             brake=0,
             turn_left=0,
             turn_right=0,
-            nothing=0
+            do_nothing=0
         )
         SESSION.add(line)
         SESSION.commit()
@@ -97,6 +97,28 @@ def save_qline(qline_dict):
         SESSION.commit()
     except IntegrityError:
         SESSION.rollback()
+def print_all_qstates_summary(limit=None):
+    """
+    Affiche un résumé de tous les états Q enregistrés dans la base de données.
+    
+    :param limit: Nombre maximum de lignes à afficher (None = pas de limite)
+    """
+    query = SESSION.query(QLine)
+    if limit:
+        query = query.limit(limit)
+    
+    qlines = query.all()
+    
+    print(f"{'State ID':<30} | Acc | Brk | Lft | Rgt | Nth")
+    print("-" * 70)
+    
+    for line in qlines:
+        print(f"{line.id[:30]:<30} | "
+              f"{line.accelerate:.2f} | "
+              f"{line.brake:.2f} | "
+              f"{line.turn_left:.2f} | "
+              f"{line.turn_right:.2f} | "
+              f"{line.do_nothing:.2f}")
 
 # Initialisation
 Base.metadata.create_all(engine)
@@ -111,6 +133,7 @@ if __name__ == '__main__':
         'brake': 0.5,
         'turn_left': 0.2,
         'turn_right': 0.8,
-        'nothing': 0.1
+        'do_nothing': 0.1
     }
     save_qline(example_q)
+    print_all_qstates_summary()
