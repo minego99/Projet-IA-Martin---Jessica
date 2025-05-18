@@ -8,6 +8,7 @@ import tkinter as tk
 from tkinter import Tk, ttk
 import pixel_kart.const
 
+
 class GameEditor(tk.Toplevel):
     """
     Le Game Editor a pour but de paramétrer correctement la partie avec:
@@ -22,7 +23,6 @@ class GameEditor(tk.Toplevel):
         
     
         self.title("Game Settings")
-        self.against_AI = False
         self.loops_count = None
     
         self.all_circuits = game_list
@@ -35,50 +35,34 @@ class GameEditor(tk.Toplevel):
         
         self.circuit_dropdown = tk.OptionMenu(self.circuit_frame, self.select_circuit, *list(self.all_circuits.keys()))
         self.circuit_dropdown.pack(side="left", padx=5)
-        self.select_circuit.set(list(self.all_circuits.keys())[0] if self.all_circuits.keys() else "")
-        
+        self.select_circuit.set(list(self.all_circuits.keys())[0] if self.all_circuits.keys() else "Basic")
         
         
         self.options_frame = tk.Frame(self)
-        self.options_frame.pack(pady=5, fill="x")
         
         
         ttk.Label(self.options_frame, text="Play against AI: ").pack(side="left")
 
         #Passage par un string car tkinter ne gère pas bien un booléen
         self.against_AI = tk.StringVar(value="Human")
-        
-        C1 = ttk.Radiobutton(
-            self.options_frame, 
-            text="Human", 
-            variable=self.against_AI, 
-            value="Human",
-            command=self.print_choice
-        )
-        
-        C2 = ttk.Radiobutton(
-            self.options_frame, 
-            text="AI", 
-            variable=self.against_AI, 
-            value="AI",
-            command=self.print_choice
-        )
-
-        C1.pack()
-        C2.pack()
-        print("button return: ", self.against_AI.get())
-        
+        self.options_frame.pack(pady=5, fill="x")
+                
         ttk.Label(self.options_frame, text="loops count:").pack(side="left", padx=5)
-        self.loops_entry = ttk.Entry(self.options_frame, textvariable="3", width=5)
+        self.loops_var = tk.StringVar(value="3")
+        self.loops_entry = ttk.Entry(self.options_frame, textvariable=self.loops_var, width=5)
+
         self.loops_entry.pack(side="left")
         self.submit_callback = None  # le controller pourra donner une fonction
-    
-   
+        
         launch_frame = tk.Frame(self)
         launch_frame.pack()
-        launch_game_button = tk.Button(launch_frame,text="Launch Game", command = self.submit_game_parameters)
-        launch_game_button.pack()
+        launch_game_button = tk.Button(launch_frame,text="Launch Game without AI", command = self.submit_game_parameters_without_AI)
+        launch_game_AI_button = tk.Button(launch_frame, text= "Launch Game with AI", command= self.submit_game_parameters_with_AI)
 
+        launch_game_button.pack()
+        launch_game_AI_button.pack()
+        
+        
     def print_choice(self):
         """
         Fonction de debug, pour vérifier le retour d'un bouton ne fonctionnant pas toujours correctement
@@ -89,27 +73,43 @@ class GameEditor(tk.Toplevel):
         """
         Lance l'interface de la partie, à l'aide des informations du GameEditor lancé
         """
+        
         selected_circuit = self.select_circuit.get()
-        print("against AI : ", self.against_AI.get())
+        self.print_choice()
         GameInterface(
             circuit=self.all_circuits.get(selected_circuit, None),
             loops_count=self.loops_count,
-            against_AI=self.against_AI.get(),
+            against_AI=self.against_AI,
             players=[None]
         ).mainloop()
 
 
    
-    def submit_game_parameters(self):
+    def submit_game_parameters_without_AI(self):
         """
         Fonction de callback, convertissant les données nécessaires pour l'interface de jeu
         """
 
+        self.against_AI = "Human"
         self.loops_count = int(self.loops_entry.get())
         selected_circuit = self.select_circuit.get()
     
         if self.submit_callback:
-            self.submit_callback(selected_circuit, self.loops_count, self.against_AI.get())
+            self.submit_callback(selected_circuit, self.loops_count, self.against_AI)
+   
+    def submit_game_parameters_with_AI(self):
+        """
+        Même fonctionnement que submit_game_parameters_without_AI, hormis le booléen modifié
+        C'est de la duplication de code, c'est vraiment pas bien dans l'idée, mais les bouttons de sélection tkinter font vraiment n'importe quoi.
+        C'est donc une mauvaise solution, mais au moins elle fonctionne'
+        """
+
+        self.against_AI = "AI"
+        self.loops_count = int(self.loops_entry.get())
+        selected_circuit = self.select_circuit.get()
+    
+        if self.submit_callback:
+            self.submit_callback(selected_circuit, self.loops_count, self.against_AI)
     
 class GameInterface(tk.Toplevel):
 
@@ -131,7 +131,6 @@ class GameInterface(tk.Toplevel):
         
         super().__init__()
         self.controller = controller
-        print("kart count: ",len(self.controller.model.karts))
 
         self.title("Game Interface")
         self.geometry("800x600")  
@@ -155,9 +154,6 @@ class GameInterface(tk.Toplevel):
         self.race_frame = tk.Frame(self.main_frame, bg="lightgrey", width=200)
         self.race_frame.pack(side='left', fill='y')
 
-        self.turns_done_text = tk.Label(self.race_frame, text="Time:")
-        self.turns_done_text.pack()
-
         self.loop_to_do_text = tk.Label(self.race_frame, text=f'Turns to do: {self.loops_count}')
         self.loop_to_do_text.pack()
 
@@ -165,8 +161,6 @@ class GameInterface(tk.Toplevel):
         self.draw_player_inputs(self.players[0], is_left=False)
 
         # Frame pour le joueur 2 (humain ou IA)
-        if self.against_AI != "Human":
-            self.draw_player_infos(self.players[1], is_left=False)
 
         self.draw_grid(circuit, players)        
 
@@ -176,7 +170,6 @@ class GameInterface(tk.Toplevel):
         dessine la grille de pixels en fonction des dimensions du circuit
         """
         self.cells = []
-        print("rows: ", self.rows, " cols: ", self.cols)
         for i in range(self.rows):
             row = []
             for j in range(self.cols):
@@ -191,7 +184,9 @@ class GameInterface(tk.Toplevel):
         """
         frame = tk.Frame(self.main_frame, bg="white", width=200)
         frame.pack(side='left' if is_left else 'right', fill='y')
-    
+        if(player == self.controller.model.karts[1]):
+            self.controller.model.current_kart +=1
+            print("IA INFO")
         # Stocke la frame dans un attribut pour pouvoir la supprimer ensuite
         if is_left:
             self.player_info_frame_left = frame
@@ -211,7 +206,12 @@ class GameInterface(tk.Toplevel):
         tk.Label(frame, text='Turns done: ').pack()
         tk.Label(frame, text=self.controller.model.get_current_kart().laps_done).pack()
 
-        
+        tk.Label(frame, text='Time: ').pack()
+        tk.Label(frame, text=self.controller.model.time).pack()
+
+        if(player == self.controller.model.karts[1]):
+            self.controller.model.current_kart -=1
+            
     def remove_player_infos(self, is_left=True):
         if is_left and hasattr(self, 'player_info_frame_left') and self.player_info_frame_left:
             self.player_info_frame_left.destroy()
@@ -242,36 +242,62 @@ class GameInterface(tk.Toplevel):
         tk.Button(input_frame, text="Brake", command=self.play_brake, bg="red").pack()
         tk.Button(input_frame, text="Skip",command= self.play_skip, bg="purple").pack()
 
-        self.draw_player_infos(player, is_left)
+        #self.draw_player_infos(player, is_left)
         
     def on_accelerate(self):
+        
         self.remove_player_infos(is_left=True)
+        self.remove_player_infos(is_left=False)
+
         self.controller.move_kart(acceleration=1)
-        self.draw_player_infos(self.players[0], is_left=True)
-    
+        if(self.controller.model.against_AI):
+            self.controller.move_random_AI()
+        self.draw_player_infos(self.players[0], is_left=False)
+        self.draw_player_infos(self.players[1], is_left=True)
+
         
                 
     def play_turn_left(self):
         self.remove_player_infos(is_left=True)
+        self.remove_player_infos(is_left=False)
+
         self.controller.turn_kart(-1)
-        self.draw_player_infos(self.players[0], is_left=True)
-                
+        if(self.controller.model.against_AI):
+            self.controller.move_random_AI()
+        self.draw_player_infos(self.players[0], is_left=False)
+        self.draw_player_infos(self.players[1], is_left=True)
+
     def play_turn_right(self):
         
         self.remove_player_infos(is_left=True)
+        self.remove_player_infos(is_left=False)
+
         self.controller.turn_kart(1)
-        self.draw_player_infos(self.players[0], is_left=True)
-                
+        if(self.controller.model.against_AI):
+            self.controller.move_random_AI()
+        self.draw_player_infos(self.players[0], is_left=False)
+        self.draw_player_infos(self.players[1], is_left=True)
+             
     def play_brake(self):
         self.remove_player_infos(is_left=True)
+        self.remove_player_infos(is_left=False)
+
         self.controller.move_kart(acceleration=-1)
-        self.draw_player_infos(self.players[0], is_left=True)
-        
+        if(self.controller.model.against_AI):
+            self.controller.move_random_AI()
+        self.draw_player_infos(self.players[0], is_left=False)
+        self.draw_player_infos(self.players[1], is_left=True)
+
     def play_skip(self):
         self.remove_player_infos(is_left=True)
+        self.remove_player_infos(is_left=False)
+
         self.controller.move_kart(acceleration=0)
-        self.draw_player_infos(self.players[0], is_left=True)
-        
+        if(self.controller.model.against_AI):
+            self.controller.move_random_AI()
+        self.draw_player_infos(self.players[0], is_left=False)
+        self.draw_player_infos(self.players[1], is_left=True)
+
     def clear(self):
         """
         Fonction permettant de supprimer tout le contenu dans un canvas
@@ -280,7 +306,9 @@ class GameInterface(tk.Toplevel):
             widget.destroy()
         self.cells.clear()
 
-
+     
+  
+        
     def draw_grid(self, circuit,players):
         """
         Affiche le circuit à partir d'une grille 2D de caractères.
@@ -309,7 +337,6 @@ class GameInterface(tk.Toplevel):
          
         # Affiche les karts
         for i, kart in enumerate(self.controller.model.karts):
-            print("kart count: ",len(self.controller.model.karts))
             color = "red" if i == 0 else "blue"
             self.cells[kart.position[1]][kart.position[0]].config(bg=color)
 
@@ -327,9 +354,3 @@ class GameInterface(tk.Toplevel):
             
         return ",".join(export_result)
     
-    
-# if __name__ == '__main__':
-#     newEditor = GameEditor()
-#     newEditor.mainloop()
-    # newGame = GameInterface()
-    # newGame.mainloop()

@@ -209,7 +209,7 @@ class Game():
         - le nombre de tours pour gagner la partie(INT)
         - le nombre de tours déjà écoulés (INT)
     """
-    def __init__(self,laps = 0,time = 0,circuit = None, karts = None):
+    def __init__(self,laps = 0,time = 0,circuit = None, karts = None, against_AI = False):
         self.current_player_index = 0  # Joueur 0 commence par défaut
         self.total_laps = laps
         self.time = time
@@ -217,7 +217,7 @@ class Game():
         self.karts = [Kart()]
         self.current_kart = 0
         self.submit_callback = None
-        
+        self.against_AI = against_AI
     
     def modify_player_movement(self, current_player: 'Kart'):
         """
@@ -234,14 +234,11 @@ class Game():
             True -> le joueur a déjà validé un tour en étant sur la ligne : on n'ajoute plus rien tant qu’il ne quitte pas la ligne
         """
         # Vérifie la direction et la vitesse du joueur
-        print("laps done: ",current_player.laps_done, "total laps: ", self.total_laps)
         for i in range(current_player.speed):
-            print("i: ", i , " scurrent speed: ", current_player.speed)
             # Prévoir la prochaine position
             next_pos = current_player.predict_next_position()
 
             terrain = self.circuit.get_terrain_type(next_pos)
-            print("terrain: ",terrain)
 
             if terrain == "R":
                 current_player.advance()
@@ -262,7 +259,6 @@ class Game():
                 # Vérifie si on entre sur la ligne d’arrivée par la gauche et validation du tour une seule fois, même si le joueur reste plusieurs pas de vitesse sur la case "finish_line".
                 current_player.laps_done += 1
                 current_player.advance()  # Avance même sur la ligne
-                print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_player.laps_done}/{self.total_laps})")
 
  
 
@@ -270,7 +266,7 @@ class Game():
             if current_player.laps_done >= self.total_laps:
                 self.end_game()
 
-                return
+
         if(current_player.speed == -1):
             #à modifier si on veut de l'évolutivité
             next_pos = current_player.reverse_next_position()
@@ -285,12 +281,13 @@ class Game():
                 if current_player.direction == "left":
                     # Vérifie si on entre sur la ligne d’arrivée par la gauche et validation du tour une seule fois, même si le joueur reste plusieurs pas de vitesse sur la case "finish_line".
                     current_player.laps_done += 1
-                    print(f"Joueur {self.current_player_index + 1} a complété un tour ! ({current_player.laps_done}/{self.total_laps})")
-          
+
+            
     def start_game(self):
         """
         Démarre le jeu avec la voiture à une vitesse de 0 et la direction vers la droite.
         """
+        
         for kart in self.karts:
             kart.speed = 0
             kart.direction = "right"
@@ -375,7 +372,6 @@ class Game():
             for x, char in enumerate(row):
                 if char == 'F':
                     finish_lines.append((x, y))
-        print("finish line debug: ", finish_lines)
         return finish_lines
 
         

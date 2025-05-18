@@ -32,8 +32,7 @@ class GameManager:
         
         self.editor = GameEditor(master = self.root, game_list = self.model.get_all_circuits())
         self.editor.submit_callback = self.receive_editor_data
-        if(self.editor.against_AI):
-            self.model.karts.append(Kart())
+
         #partie éxécutée dès le lancement du jeu
         self.root.mainloop()
         
@@ -60,9 +59,10 @@ class GameManager:
         self.model.circuit = self.model.get_circuit(circuit_name)
         self.model.laps = loops_count        
         self.model.karts = [Kart(position=random.choice(self.model.get_finish_lines()))]
-        if(self.editor.against_AI.get() != "Human"):
+        if(self.editor.against_AI == 'AI'):
             self.model.karts.append(Kart(position=random.choice(self.model.get_finish_lines())))
-        
+            self.model.against_AI = True
+         
         self.model.start_game()
     
         # Créer la vue principale de jeu
@@ -92,18 +92,32 @@ class GameManager:
         if(kart.speed < -1):
             kart.speed = -1
         # Appliquer les contraintes de mouvement
-        self.model.modify_player_movement(self.model.get_current_kart())
-        
-        
+        self.model.modify_player_movement(kart)
+        self.model.time += 1
+
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)
         
     def turn_kart(self, movement):
-        kart = self.model.karts[self.model.current_kart]
-
-        self.model.turn(kart,movement)
-        self.move_kart(False)
         
-
-if __name__ == "__main__":
-    new_manager = GameManager()
+        kart = self.model.karts[self.model.current_kart]
+        self.model.turn(kart,movement)
+        self.move_kart(acceleration = False)
+        
+                        
+    def move_random_AI(self):
+        
+        print("move AI")
+        self.model.current_kart += 1
+        random_movement = random.choice([0,1,2,3,4])
+        if(random_movement == 0):
+            self.move_kart(0)
+        elif(random_movement == 1):
+            self.move_kart(-1)
+        elif(random_movement == 2):
+            self.move_kart(-1)
+        elif(random_movement == 3):
+            self.turn_kart(1)
+        elif(random_movement == 4):
+            self.turn_kart(-1)
+        self.model.current_kart -= 1
