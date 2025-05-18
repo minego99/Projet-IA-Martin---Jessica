@@ -1,84 +1,116 @@
 # -*- coding: utf-8 -*-
-"""
-DAO pour gérer les états du jeu PixelKart dans une base SQLite avec SQLAlchemy.
-"""
-
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine, Column, String, Float
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-# Déclaration de la base
+# Base ORM
 class Base(DeclarativeBase):
     pass
 
-# Initialisation de la base de données
-engine = create_engine('sqlite:///pixelkart.db')  # nom de la base
+# Connexion à la base
+engine = create_engine('sqlite:///pixelkart.db')
 Session = sessionmaker(bind=engine)
 SESSION = Session()
 
-# Modèle représentant un état du jeu PixelKart
-class KartState(Base):
-    __tablename__ = 'kart_states'
-
-    # L'état est représenté par une chaîne unique : "x;y;direction;grid"
-    id = Column(String, primary_key=True)
-    up_value = Column(Float, nullable=True)
-    down_value = Column(Float, nullable=True)
-    left_value = Column(Float, nullable=True)
-    right_value = Column(Float, nullable=True)
+# Table QLine
+class QLine(Base):
+    __tablename__ = 'QTable'
+    id = Column(String, primary_key=True)  # représente l'état unique
+    accelerate = Column(Float, nullable=True)
+    brake = Column(Float, nullable=True)
+    turn_left = Column(Float, nullable=True)
+    turn_right = Column(Float, nullable=True)
+    nothing = Column(Float, nullable=True)
 
     def to_dto(self):
         return {
-            "state_id": self.id,
-            "up_value": self.up_value,
-            "down_value": self.down_value,
-            "left_value": self.left_value,
-            "right_value": self.right_value
+            'state_id': self.id,
+            'accelerate': self.accelerate,
+            'brake': self.brake,
+            'turn_left': self.turn_left,
+            'turn_right': self.turn_right,
+            'nothing': self.nothing
         }
 
     @classmethod
-    def from_dto(cls, data: dict):
+    def from_dto(cls, data):
         return cls(
             id=data.get("state_id"),
-            up_value=data.get("up_value", 0),
-            down_value=data.get("down_value", 0),
-            left_value=data.get("left_value", 0),
-            right_value=data.get("right_value", 0)
+            accelerate=data.get("accelerate"),
+            brake=data.get("brake"),
+            turn_left=data.get("turn_left"),
+            turn_right=data.get("turn_right"),
+            nothing=data.get("nothing")
         )
 
-# Création des tables
-Base.metadata.create_all(engine)
+# Fonction d'encodage de l'état
 
-# Récupère un état à partir d'un identifiant, le crée s'il n'existe pas
-def get_kart_state_by_id(state_id):
-    state = SESSION.query(KartState).filter(KartState.id == state_id).first()
-    if state is None:
-        state = KartState(id=state_id, up_value=0, down_value=0, left_value=0, right_value=0)
-        SESSION.add(state)
+def encode_state(grid, x, y, direction, speed):
+    dx, dy = 0, 0
+    if direction == 'N':
+        dx, dy = 0, -1
+    elif direction == 'S':
+        dx, dy = 0, 1
+    elif direction == 'E':
+        dx, dy = 1, 0
+    elif direction == 'W':
+        dx, dy = -1, 0
+
+    def safe_get(x, y):
+        if 0 <= y < len(grid) and 0 <= x < len(grid[0]):
+            return grid[y][x]
+        return "X"
+
+    vision = []
+    for dist in range(1, 5):
+        for lateral in range(-dist + 1, dist):
+            if dx == 0:
+                vision.append(safe_get(x + lateral, y + dy * dist))
+            else:
+                vision.append(safe_get(x + dx * dist, y + lateral))
+
+    vision.append(safe_get(x - dx, y - dy))
+    encoded = "".join(vision) + f";{direction};{speed}"
+    return encoded
+
+# DAO Utilitaire
+
+def get_Qline_by_state(state):
+    line = SESSION.query(QLine).filter(QLine.id == state).first()
+    if line is None:
+        line = QLine(
+            id=state,
+            accelerate=0,
+            brake=0,
+            turn_left=0,
+            turn_right=0,
+            nothing=0
+        )
+        SESSION.add(line)
         SESSION.commit()
-    return state
+    return line
 
-# Sauvegarde ou met à jour un état
-def save_kart_state(state_dict):
+def save_qline(qline_dict):
     try:
-        state_instance = KartState.from_dto(state_dict)
-        SESSION.merge(state_instance)
+        qline = QLine.from_dto(qline_dict)
+        SESSION.merge(qline)
         SESSION.commit()
     except IntegrityError:
         SESSION.rollback()
-        print(f"Erreur lors de la sauvegarde de l'état {state_dict.get('state_id')}")
 
-if __name__ == "__main__":
-    # Exemple d'utilisation
-    test_state = {
-        "state_id": "2;4;N;XXXX,XXXX,XXXX",
-        "up_value": 0.5,
-        "down_value": 1.5,
-        "left_value": 0.0,
-        "right_value": 2.0
+# Initialisation
+Base.metadata.create_all(engine)
+
+def init_db():
+    Base.metadata.create_all(engine)
+
+if __name__ == '__main__':
+    example_q = {
+        'state_id': '....G..G....;N;2',
+        'accelerate': 1.0,
+        'brake': 0.5,
+        'turn_left': 0.2,
+        'turn_right': 0.8,
+        'nothing': 0.1
     }
-
-    save_kart_state(test_state)
-
-    retrieved = get_kart_state_by_id("2;4;N;XXXX,XXXX,XXXX")
-    print(retrieved.to_dto())
+    save_qline(example_q)
