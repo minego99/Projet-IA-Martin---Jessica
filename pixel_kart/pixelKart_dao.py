@@ -1,6 +1,9 @@
 import os
 
+#import pour lancement depuis le main
 FILE_PATH = "pixel_kart/circuits.txt"
+#import pour lancement depuis l'entraînement
+FILE_PATH = "circuits.txt"
 
 def get_all():
     """Retrieve all circuits from the file as a dictionary {name: str}."""
