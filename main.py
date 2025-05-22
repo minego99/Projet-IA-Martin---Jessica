@@ -128,11 +128,27 @@ class MainFrame(tk.Frame):
 
     def launch_pixelkart(self):
         """
-        Lance PixelKart
+        Lance PixelKart avec éditeur de niveau, puis le jeu.
         """
         print("PixelKart")
-        controller = GameManager()
+        
+        # Fenêtre de l'éditeur
+        editor_root = tk.Toplevel(self.container)
+        editor_root.title("Éditeur de niveau - PixelKart")
 
+        # Fonction appelée quand l'utilisateur valide le circuit
+        def start_game(circuit):
+            editor_root.destroy()  # Ferme l'éditeur
+            # Lance le jeu avec le circuit
+            game_root = tk.Toplevel(self.container)
+            game_root.title("PixelKart - Course")
+            game = Game(circuit)
+            interface = GameInterface(game_root, game)
+            game_root.mainloop()
+
+        # Lance l'éditeur avec la fonction callback
+        editor = GameEditor(editor_root, start_game)
+        editor_root.mainloop()
 
 if __name__ == "__main__":
     app = App("Sélection de jeux", [300, 50])
