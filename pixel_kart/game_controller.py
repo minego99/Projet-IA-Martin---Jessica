@@ -86,23 +86,31 @@ class GameManager:
         Et redessine la grille pour afficher le kart correctement
         """
         kart = self.model.karts[self.model.current_kart]
+
+        if not kart.alive:
+            return  # Ne pas déplacer un kart mort
+
+        # Ajustement de la vitesse
         kart.speed += acceleration
-        if(kart.speed > 2):
+        if kart.speed > 2:
             kart.speed = 2
-        if(kart.speed < -1):
+        if kart.speed < -1:
             kart.speed = -1
+
         # Appliquer les contraintes de mouvement
         self.model.modify_player_movement(kart)
+
+        # Vérifier s'il se prend un mur
+        x, y = kart.position  # Suppose que position = (x, y)
+        if self.model.circuit[y][x] == '#':
+            kart.alive = False
+            print(f"Kart {self.model.current_kart} s'est écrasé contre un mur !")
+
         self.model.time += 1
 
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)
-        
-    def turn_kart(self, movement):
-        
-        kart = self.model.karts[self.model.current_kart]
-        self.model.turn(kart,movement)
-        self.move_kart(acceleration = False)
+
         
                         
     def move_random_AI(self):
