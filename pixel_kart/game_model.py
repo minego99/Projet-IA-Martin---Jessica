@@ -218,6 +218,7 @@ class Game():
         self.current_kart = 0
         self.submit_callback = None
         self.against_AI = against_AI
+        self.game_over = False
     
     def modify_player_movement(self, current_player: 'Kart'):
         """
@@ -298,6 +299,7 @@ class Game():
         """
         winner = self.karts[self.current_player_index]
         print(f"Le joueur {self.current_player_index + 1} a gagné !")
+        self.game_over = True # Indique que la partie est terminée
     
     def step(self):
         """
