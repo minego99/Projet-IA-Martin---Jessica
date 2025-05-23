@@ -79,7 +79,9 @@ class AI(Kart):
         self.actions_values = None
         
     def choose_action(self):
-        """Choisit une action selon une stratégie ε-greedy."""
+        """
+        Choisit une action selon une stratégie ε-greedy.
+        """
         state_id = AI_dao.encode_state(self.circuit.grid,self.position[0],self.position[1],self.direction,self.speed)
         q_values = AI_dao.get_Qline_by_state(state_id)
     
@@ -264,7 +266,9 @@ class Game():
                     current_player.advance()
                 
             elif terrain == "W":
-                self.is_alive = False
+                print("terrain == W")
+                self.get_current_kart().is_alive = False
+
                 self.end_game()
                 # Si terrain = mur, arrêter la voiture
                 current_player.speed = 0
@@ -312,20 +316,9 @@ class Game():
         Déclare la fin de la partie et le gagnant.
         """
         winner = self.karts[self.current_player_index]
-        print(f"Le joueur {self.current_player_index + 1} a gagné !")
         self.game_over = True # Indique que la partie est terminée
-    
-    # def step(self):
-    #     """
 
-    #     - decide_action() pour voir s’il y a une action du joueur
-    #     - modify_player_movement() pour adapter en fonction du terrain (vitesse, mur, herbe, ligne d’arrivée)
-    #     """
-    #     self.time += 1
-    #     for kart in self.karts:
-    #         kart.decide_action() # Le joueur peut changer de direction ou accélérer
-    #         self.modify_player_movement(kart) # Avance automatiquement à sa vitesse actuelle
-    #         kart.update_position()
+    
 
     def stop(self):
         """

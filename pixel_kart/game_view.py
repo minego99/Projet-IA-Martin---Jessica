@@ -178,7 +178,7 @@ class GameInterface(tk.Toplevel):
                 row.append(cell)
             self.cells.append(row)
 
-    def draw_player_infos(self, player, is_left=True):
+    def draw_player_infos(self,player_name, player, is_left=True ):
         """
         Affiche les informations propre à un joueur
         """
@@ -196,7 +196,7 @@ class GameInterface(tk.Toplevel):
         tk.Label(frame, text='Kart').pack()
         tk.Label(frame, text='Player').pack()
     
-        tk.Label(frame, text=str(self.controller.model.current_kart)).pack()
+        tk.Label(frame, text=str(player_name)).pack()
         tk.Label(frame, text='Direction: ').pack()
         tk.Label(frame, text=self.controller.model.get_current_kart().direction).pack()
     
@@ -213,6 +213,7 @@ class GameInterface(tk.Toplevel):
             self.controller.model.current_kart -=1
             
     def remove_player_infos(self, is_left=True):
+        
         if is_left and hasattr(self, 'player_info_frame_left') and self.player_info_frame_left:
             self.player_info_frame_left.destroy()
             self.player_info_frame_left = None
@@ -246,57 +247,65 @@ class GameInterface(tk.Toplevel):
         
     def on_accelerate(self):
         
-        self.remove_player_infos(is_left=True)
         self.remove_player_infos(is_left=False)
-
         self.controller.move_kart(acceleration=1)
+        
         if(self.controller.model.against_AI):
-            self.controller.move_smart_AI()
-        self.draw_player_infos(self.players[0], is_left=False)
-        self.draw_player_infos(self.players[1], is_left=True)
+            self.remove_player_infos(is_left=True)
+            self.controller.move_smart_AI()    
+            self.draw_player_infos( "AI",self.players[1], is_left=True)
 
+        self.draw_player_infos("Human",self.players[0], is_left=False )
         
                 
     def play_turn_left(self):
-        self.remove_player_infos(is_left=True)
+        
         self.remove_player_infos(is_left=False)
-
         self.controller.turn_kart(-1)
+        
         if(self.controller.model.against_AI):
+            
+            self.remove_player_infos(is_left=True)
             self.controller.move_smart_AI()
-        self.draw_player_infos(self.players[0], is_left=False)
-        self.draw_player_infos(self.players[1], is_left=True)
+            self.draw_player_infos( "AI", self.players[1], is_left=True,)
+            
+        self.draw_player_infos("Human",self.players[0], is_left=False )
 
     def play_turn_right(self):
         
-        self.remove_player_infos(is_left=True)
         self.remove_player_infos(is_left=False)
-
         self.controller.turn_kart(1)
+        
         if(self.controller.model.against_AI):
+            self.remove_player_infos(is_left=True)
             self.controller.move_smart_AI()
-        self.draw_player_infos(self.players[0], is_left=False)
-        self.draw_player_infos(self.players[1], is_left=True)
+            self.draw_player_infos("AI",self.players[1], is_left=True)
+            
+        self.draw_player_infos("Human",self.players[0], is_left=False )
              
     def play_brake(self):
+        
         self.remove_player_infos(is_left=True)
-        self.remove_player_infos(is_left=False)
-
         self.controller.move_kart(acceleration=-1)
+        
         if(self.controller.model.against_AI):
+            self.remove_player_infos(is_left=False)
             self.controller.move_smart_AI()
-        self.draw_player_infos(self.players[0], is_left=False)
-        self.draw_player_infos(self.players[1], is_left=True)
+            self.draw_player_infos("AI",self.players[1], is_left=True)
+
+        self.draw_player_infos("Human",self.players[0], is_left=False )
 
     def play_skip(self):
-        self.remove_player_infos(is_left=True)
+        
         self.remove_player_infos(is_left=False)
-
         self.controller.move_kart(acceleration=0)
+        
         if(self.controller.model.against_AI):
-            self.controller.move_smart_AI()
-        self.draw_player_infos(self.players[0], is_left=False)
-        self.draw_player_infos(self.players[1], is_left=True)
+            self.remove_player_infos(is_left=True)
+            self.controller.move_smart_AI()            
+            self.draw_player_infos("AI",self.players[1], is_left=True)
+            
+        self.draw_player_infos("Human",self.players[0], is_left=False )
 
     def clear(self):
         """
@@ -340,7 +349,24 @@ class GameInterface(tk.Toplevel):
             color = "red" if i == 0 else "blue"
             self.cells[kart.position[1]][kart.position[0]].config(bg=color)
 
-
+    def draw_end_game(self, has_winner):
+        
+        if(has_winner):
+            message = "You won !"
+        else:
+            message = "you died !"
+            
+        tk.Label(self.race_frame, text = message).pack()
+         
+        self.after(0, self.countdown, 7)
+         
+    def countdown(self, count):
+        
+        tk.Label(self.race_frame, text=f"Fermeture dans {count} secondes...")
+        if count > 0:
+            self.after(1000, self.countdown, count - 1)
+        else:
+            self.destroy()
 
     def data_to_dto(self):
         """

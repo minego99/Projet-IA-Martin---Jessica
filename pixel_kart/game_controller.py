@@ -87,27 +87,24 @@ class GameManager:
         """
         kart = self.model.karts[self.model.current_kart]
 
-        if not kart.is_alive:
-            return  # Ne pas déplacer un kart mort
-
         # Ajustement de la vitesse
         kart.speed += acceleration
         if kart.speed > 2:
             kart.speed = 2
         if kart.speed < -1:
             kart.speed = -1
+        
 
-        # Appliquer les contraintes de mouvement
         self.model.modify_player_movement(kart)
-
-        # Vérifier s'il se prend un mur
-        x, y = kart.position  # Suppose que position = (x, y)
-        if self.model.circuit.grid[y][x] == 'W':
-            kart.alive = False
-            print(f"Kart {self.model.current_kart} s'est écrasé contre un mur !")
-
+        print("is_alive: ", kart.is_alive)
+        if(kart.is_alive == False):
+              self.interface.draw_end_game(has_winner = False)
+              print("loser case")
         self.model.time += 1
-
+        
+        if(kart.laps_done >= self.model.laps):
+            self.interface.draw_end_game(has_winner = True)
+            print("winner case")
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)
 
