@@ -6,6 +6,7 @@ Created on Fri Apr 11 11:35:30 2025
 """
 
 import pixel_kart.pixelKart_dao as dao
+import pixel_kart.gameDAO as AI_dao
 import random
 class Kart:
     """
@@ -17,16 +18,19 @@ class Kart:
         - laps_done (int): nombre de tours effectués
         - has_crossed_line (bool): flag pour éviter d'ajouter plusieurs tours sur la ligne d'arrivée
     """
-    def __init__(self, position=(0,0), speed=0, direction="right"):
+    def __init__(self,circuit, position=(0,0), speed=0, direction="right"):
         self.position = position
         self.speed = speed
         self.laps_done = 0
         self.has_crossed_line = False
         self.directions = ["left","up","right","down"]
+        self.is_alive = True
         
         # la gestion de la direction se fait par l'index de la liste de la direction (0 pour la gauche, 1 pour le haut, 2 pour la droite et 3 pour le bas)
         self.direction = direction
-
+        self.circuit = circuit
+        
+        
     def predict_next_position(self):
         """
         renvoie:
@@ -67,18 +71,25 @@ class Kart:
 
 
 class AI(Kart):
+    def __init__(self,circuit, position=(0,0), speed=0, direction="right", epsilon = 0.9, gamma = 0.1, alpha = 0.01):
+        super().__init__(circuit, position, speed, direction)
+        self.epsilon = epsilon
+        self.gamma = gamma
+        self.alpha = alpha
+        self.actions_values = None
+        
     def choose_action(self):
         """Choisit une action selon une stratégie ε-greedy."""
-        state_id = self.model.create_state()
-        q_values = 0 # gameDAO.get_Qline_by_state(state_id)
+        state_id = AI_dao.encode_state(self.circuit.grid,self.position[0],self.position[1],self.direction,self.speed)
+        q_values = AI_dao.get_Qline_by_state(state_id)
     
         actions = ['accelerate', 'skip', 'turn_left', 'turn_right','brake']
         values = [
-            q_values.accelerate_value,
-            q_values.skip_value,
-            q_values.brake_value,
-            q_values.turn_left_value,
-            q_values.turn_right_value
+            q_values.accelerate,
+            q_values.do_nothing,
+            q_values.brake,
+            q_values.turn_left,
+            q_values.turn_right
         ]
     
         if random.uniform(0, 1) < self.epsilon:
@@ -88,6 +99,8 @@ class AI(Kart):
             # Exploitation : choisir l'action avec la plus grande valeur Q
             max_index = values.index(max(values))
             return actions[max_index]
+        
+        
     def data_to_dto(self):
         """
         convertit l'état de la partie et le transforme en un dictionnaire avec les poids dedans
@@ -214,7 +227,7 @@ class Game():
         self.total_laps = laps
         self.time = time
         self.circuit = Circuit(dao.get_circuit_grid("Basic"))
-        self.karts = [Kart()]
+        self.karts = [karts]
         self.current_kart = 0
         self.submit_callback = None
         self.against_AI = against_AI
@@ -251,7 +264,8 @@ class Game():
                     current_player.advance()
                 
             elif terrain == "W":
-
+                self.is_alive = False
+                self.end_game()
                 # Si terrain = mur, arrêter la voiture
                 current_player.speed = 0
 
@@ -301,20 +315,17 @@ class Game():
         print(f"Le joueur {self.current_player_index + 1} a gagné !")
         self.game_over = True # Indique que la partie est terminée
     
-    def step(self):
-        """
-        Avance d’un pas dans le temps. Chaque kart avance automatiquement à la vitesse qu'il a,
-        même si aucun input n'est donné.
+    # def step(self):
+    #     """
 
-        À chaque tick (seconde), on appelle:
-        - decide_action() pour voir s’il y a une action du joueur
-        - modify_player_movement() pour adapter en fonction du terrain (vitesse, mur, herbe, ligne d’arrivée)
-        """
-        self.time += 1
-        for kart in self.karts:
-            kart.decide_action() # Le joueur peut changer de direction ou accélérer
-            self.modify_player_movement(kart) # Avance automatiquement à sa vitesse actuelle
-            kart.update_position()
+    #     - decide_action() pour voir s’il y a une action du joueur
+    #     - modify_player_movement() pour adapter en fonction du terrain (vitesse, mur, herbe, ligne d’arrivée)
+    #     """
+    #     self.time += 1
+    #     for kart in self.karts:
+    #         kart.decide_action() # Le joueur peut changer de direction ou accélérer
+    #         self.modify_player_movement(kart) # Avance automatiquement à sa vitesse actuelle
+    #         kart.update_position()
 
     def stop(self):
         """

@@ -1,0 +1,13 @@
+1ère version: 
+- cession: 1000 parties, remises à 0 en cas de victoire ou de 100 actions atteintes par l'IA
+- gestion de l'epsilon dynamique
+- epsilon initial = 0.1
+- alpha initial = 0.1
+- gamma initial = 0.9
+- méthode de calcul des poids:
+	- +1 si le mouvement s'est fait avec une vitesse de 1
+	- +2 si le mouvement s'est fait avec une vitesse de 2
+	- + un léger bonus augmentant quand la partie est avancée (variant de 0 jusqu'à 2)
+	- + 10 si le coup a permis de gagner un tour
+En jeu, l'IA avance correctement sur la route mais ne tourne pas lors d'un virage
+Manque d'exploration évident

@@ -132,8 +132,7 @@ class AI(Kart):
         reward += max(0, 2 - (actions_per_game - time) / 10)
         if(self.laps_done >= 1):
             reward += 10
-       # print("reward: ", reward)
-       
+      
         return reward
     
     def update_q_table(self, previous_state, action, reward, new_state):
@@ -316,8 +315,7 @@ class Game():
         Déclare la fin de la partie et le gagnant.
         """
         winner = self.karts[self.current_player_index]
-       # print(f"Le joueur {self.current_player_index + 1} a gagné !")
-        
+             
     def step(self):
         """
         Avance d’un pas dans le temps. Chaque kart avance automatiquement à la vitesse qu'il a,
@@ -416,7 +414,6 @@ class Game():
         if(new_direction_index >= 4):
             new_direction_index = 0
         current_kart.direction = self.get_current_kart().directions[new_direction_index]
-       # print(current_kart.direction)
         
         
 def train_AI(training_amount, actions_per_game, epsilon_decay):
@@ -443,7 +440,7 @@ def train_AI(training_amount, actions_per_game, epsilon_decay):
     game_won = 0
     actions = ['accelerate', 'do_nothing', 'turn_left', 'turn_right','brake']
     
-    initial_epsilon = AI_player.epsilon
+    
     min_epsilon = 0.01
     for game in range(0,training_amount):
         
@@ -469,7 +466,6 @@ def train_AI(training_amount, actions_per_game, epsilon_decay):
             training_game.time += 1
             
             
-            print("time: ",training_game.time)
             if(AI_player.laps_done > 1):
                 game_won += 1
                 training_game.reset()     
@@ -478,4 +474,4 @@ def train_AI(training_amount, actions_per_game, epsilon_decay):
     print("game won: ", game_won, " / ", training_amount)
     
 if(__name__ == "__main__"):
-    train_AI(training_amount=1, actions_per_game = 1, epsilon_decay=0.9)
+    train_AI(training_amount=1000, actions_per_game = 100, epsilon_decay=0.9)

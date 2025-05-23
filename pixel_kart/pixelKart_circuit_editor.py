@@ -1,7 +1,11 @@
 import tkinter as tk
 from tkinter import Tk, ttk
-import pixelKart_dao as dao
-from pixelKart_circuitFrames import CircuitEditorFrame
+
+import pixel_kart.pixelKart_dao as dao
+import pixel_kart.pixelKart_circuitFrames as frames
+from pixel_kart.game_controller import GameManager
+from pixel_kart.game_model import Game,Circuit, Kart
+from pixel_kart.game_view import GameEditor, GameInterface
 
 class CircuitEditor(tk.Toplevel):
     """
@@ -51,12 +55,12 @@ class CircuitEditor(tk.Toplevel):
         ttk.Label(input_frame, text="Width:").pack(side="left", padx=5)
         width_entry = ttk.Entry(input_frame, textvariable=self.width_var, width=5)
         width_entry.pack(side="left")
-        # Button to change size
+        # Buttun to change size
         change_size_button = ttk.Button(input_frame, text="Change size", command=self.change_size)
         change_size_button.pack(side="left", padx=5)
 
         # Frame for grid
-        self.grid_frame = CircuitEditorFrame(self)
+        self.grid_frame = frames.CircuitEditorFrame(self)
         self.grid_frame.pack(pady=10, fill="both", expand=True)
 
         # Frame to import existing
@@ -75,14 +79,6 @@ class CircuitEditor(tk.Toplevel):
         # Frame to save
         save_frame = ttk.Frame(self)
         save_frame.pack(pady=5, fill="x")
-        
-        #Frame to load game
-        game_frame = ttk.Frame(self)
-        game_frame.pack(pady = 5, fill = "x")
-        
-        game_label = tk.Label(import_frame, text="Load game")
-        game_label.pack(side = "right")
-        
 
         save_button = ttk.Button(save_frame, text="Save", command=self.save_circuit)
         save_button.pack(side="left", padx=5)
@@ -90,6 +86,13 @@ class CircuitEditor(tk.Toplevel):
         chose_button = ttk.Button(save_frame, text="Chose", command=self.chose)
         chose_button.pack(side="left", padx=5)
     
+    
+        import_button = ttk.Button(save_frame, text="Launch pixel kart", command=self.launch_pixel_kart)
+        import_button.pack(side="left", padx=5)
+        
+    def launch_pixel_kart(self):
+        controller = GameManager()
+
     def chose(self):
         """
         Calls the callback function with the selected circuit name.
@@ -164,12 +167,12 @@ class CircuitEditor(tk.Toplevel):
         except ValueError:
             cols = 20
             self.length_var.set(str(cols))
-        print('row: ', rows, "col: ", cols)
+        
         self.grid_frame.rows = rows
         self.grid_frame.cols = cols
         self.grid_frame.clear()
         self.grid_frame.init_cells()
-
+    
 
 if __name__ == "__main__":
     root = Tk()

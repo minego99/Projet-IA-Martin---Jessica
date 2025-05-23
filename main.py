@@ -15,14 +15,10 @@ from cubee.gameview import CubeeGameView
 from cubee.gamecontroller import CubeeGameController
 
 
-from pixel_kart.game_controller import GameManager
-from pixel_kart.game_model import Game,Circuit, Kart
-
-from pixel_kart.game_view import GameEditor, GameInterface
-import random
 from tkinter import *
 import tkinter as tk
 
+from pixel_kart.pixelKart_circuit_editor import CircuitEditor
 
 
 class App(tk.Tk):
@@ -51,7 +47,7 @@ class MainFrame(tk.Frame):
     hérite de:
         - Frame, qui est un widget de tkinter (tkinter)
     Paramètres:
-        - container (tk.Tk): fenêtre principale dans laquelle le frame est affiché
+        - container (tk.Tk): fenêtre principale dans laquelle la frame est affiché
     Arguments:
         - texte principal de l'image (STR)
         - cadre contenant les bouttons de sélection des jeux (Widget)
@@ -132,23 +128,26 @@ class MainFrame(tk.Frame):
         """
         print("PixelKart")
         
-        # Fenêtre de l'éditeur
-        editor_root = tk.Toplevel(self.container)
-        editor_root.title("Éditeur de niveau - PixelKart")
+        # # Fenêtre de l'éditeur
+        # editor_root = tk.Toplevel(self.container)
+        # editor_root.title("Éditeur de niveau - PixelKart")
 
-        # Fonction appelée quand l'utilisateur valide le circuit
-        def start_game(circuit):
-            editor_root.destroy()  # Ferme l'éditeur
-            # Lance le jeu avec le circuit
-            game_root = tk.Toplevel(self.container)
-            game_root.title("PixelKart - Course")
-            game = Game(circuit)
-            interface = GameInterface(game_root, game)
-            game_root.mainloop()
+        # # Fonction appelée quand l'utilisateur valide le circuit
+        # def start_game(circuit):
+        #     editor_root.destroy()  # Ferme l'éditeur
+        #     # Lance le jeu avec le circuit
+        #     game_root = tk.Toplevel(self.container)
+        #     game_root.title("PixelKart - Course")
+        #     game = Game(circuit)
+        #     interface = GameInterface(game_root, game)
+        #     game_root.mainloop()
 
-        # Lance l'éditeur avec la fonction callback
-        editor = GameEditor(editor_root, start_game)
-        editor_root.mainloop()
+        # # Lance l'éditeur avec la fonction callback
+        # editor = GameEditor(editor_root, start_game)
+        # editor_root.mainloop()
+        #controller = GameManager()
+        root = tk.Tk()
+        editor = CircuitEditor(self.container, callback=lambda x : print(f"Callback with {x}"))
 
 if __name__ == "__main__":
     app = App("Sélection de jeux", [300, 50])

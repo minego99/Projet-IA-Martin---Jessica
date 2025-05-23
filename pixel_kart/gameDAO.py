@@ -46,6 +46,19 @@ class QLine(Base):
 # Fonction d'encodage de l'état
 
 def encode_state(grid, x, y, direction, speed):
+    """
+    crée un état à partir de l'état de l'IA
+    arguments:
+        - grille du circuit [[CHAR]]
+        - position X du joueur (INT)
+        - position y du joueur (INT)
+        - direction du joueur (STR)
+        - vitesse du joueur (min -1, max 2)
+        
+    renvoie:
+        - l'état du joueur (STR)
+    """
+    
     dx, dy = 0, 0
     if direction == 'up':
         dx, dy = 0, -1
@@ -65,10 +78,8 @@ def encode_state(grid, x, y, direction, speed):
     for dist in range(1, 5):
         for lateral in range(-dist + 1, dist):
             if dx == 0:
-                print("dx==0: ",safe_get(x + lateral, y + dy * dist) )
                 vision.append(safe_get(x + lateral, y + dy * dist))
             else:
-                print("dx!=0: ",safe_get(x + dx * dist, y + lateral) )
                 vision.append(safe_get(x + dx * dist, y + lateral))
 
     vision.append(safe_get(x - dx, y - dy))
@@ -116,6 +127,8 @@ def save_qline(qline_dict):
               f"{qline.do_nothing:.2f}")
     except IntegrityError:
         SESSION.rollback()
+        
+        
 def print_all_qstates_summary(limit=None):
     """
     Affiche un résumé de tous les états Q enregistrés dans la base de données.
@@ -138,9 +151,11 @@ def print_all_qstates_summary(limit=None):
               f"{line.turn_left:.2f} | "
               f"{line.turn_right:.2f} | "
               f"{line.do_nothing:.2f}")
+        
 def clear_qtable():
     """
     Supprime toutes les entrées de la Q-table sans supprimer la table elle-même.
+    Utilisable pour essayer un nouveau modèle sans devoir supprimer/déplacer la db
     """
     try:
         num_deleted = SESSION.query(QLine).delete()

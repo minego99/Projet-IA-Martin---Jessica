@@ -251,7 +251,7 @@ class GameInterface(tk.Toplevel):
 
         self.controller.move_kart(acceleration=1)
         if(self.controller.model.against_AI):
-            self.controller.move_random_AI()
+            self.controller.move_smart_AI()
         self.draw_player_infos(self.players[0], is_left=False)
         self.draw_player_infos(self.players[1], is_left=True)
 
@@ -263,7 +263,7 @@ class GameInterface(tk.Toplevel):
 
         self.controller.turn_kart(-1)
         if(self.controller.model.against_AI):
-            self.controller.move_random_AI()
+            self.controller.move_smart_AI()
         self.draw_player_infos(self.players[0], is_left=False)
         self.draw_player_infos(self.players[1], is_left=True)
 
@@ -274,7 +274,7 @@ class GameInterface(tk.Toplevel):
 
         self.controller.turn_kart(1)
         if(self.controller.model.against_AI):
-            self.controller.move_random_AI()
+            self.controller.move_smart_AI()
         self.draw_player_infos(self.players[0], is_left=False)
         self.draw_player_infos(self.players[1], is_left=True)
              
@@ -284,7 +284,7 @@ class GameInterface(tk.Toplevel):
 
         self.controller.move_kart(acceleration=-1)
         if(self.controller.model.against_AI):
-            self.controller.move_random_AI()
+            self.controller.move_smart_AI()
         self.draw_player_infos(self.players[0], is_left=False)
         self.draw_player_infos(self.players[1], is_left=True)
 
@@ -294,7 +294,7 @@ class GameInterface(tk.Toplevel):
 
         self.controller.move_kart(acceleration=0)
         if(self.controller.model.against_AI):
-            self.controller.move_random_AI()
+            self.controller.move_smart_AI()
         self.draw_player_infos(self.players[0], is_left=False)
         self.draw_player_infos(self.players[1], is_left=True)
 

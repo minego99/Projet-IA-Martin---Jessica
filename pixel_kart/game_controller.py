@@ -6,7 +6,7 @@ Created on Mon Apr 14 08:41:23 2025
 """
 from pixel_kart.game_view import GameEditor, GameInterface
 import tkinter as tk
-from pixel_kart.game_model import Kart, Circuit, Game
+from pixel_kart.game_model import Kart, Circuit, Game, AI
 import random
 
 class GameManager:
@@ -58,9 +58,9 @@ class GameManager:
     
         self.model.circuit = self.model.get_circuit(circuit_name)
         self.model.laps = loops_count        
-        self.model.karts = [Kart(position=random.choice(self.model.get_finish_lines()))]
+        self.model.karts = [Kart(position=random.choice(self.model.get_finish_lines()), circuit = self.model.circuit)]
         if(self.editor.against_AI == 'AI'):
-            self.model.karts.append(Kart(position=random.choice(self.model.get_finish_lines())))
+            self.model.karts.append(AI(position=random.choice(self.model.get_finish_lines()), circuit = self.model.circuit))
             self.model.against_AI = True
          
         self.model.start_game()
@@ -87,7 +87,7 @@ class GameManager:
         """
         kart = self.model.karts[self.model.current_kart]
 
-        if not kart.alive:
+        if not kart.is_alive:
             return  # Ne pas déplacer un kart mort
 
         # Ajustement de la vitesse
@@ -102,7 +102,7 @@ class GameManager:
 
         # Vérifier s'il se prend un mur
         x, y = kart.position  # Suppose que position = (x, y)
-        if self.model.circuit[y][x] == '#':
+        if self.model.circuit.grid[y][x] == 'W':
             kart.alive = False
             print(f"Kart {self.model.current_kart} s'est écrasé contre un mur !")
 
@@ -111,7 +111,12 @@ class GameManager:
         # Regénérer la grille
         self.interface.draw_grid(self.model.circuit, self.model.karts)
 
-        
+    def turn_kart(self, movement):
+            
+        kart = self.model.karts[self.model.current_kart]
+        self.model.turn(kart,movement)
+        self.move_kart(acceleration = False)
+           
                         
     def move_random_AI(self):
         
@@ -128,4 +133,24 @@ class GameManager:
             self.turn_kart(1)
         elif(random_movement == 4):
             self.turn_kart(-1)
+        self.model.current_kart -= 1
+        
+        
+    def move_smart_AI(self):
+        """
+        déplace le kart en fonction de la q-value la plus élevée pour son état
+        """
+        actions = ["accelerate","turn_left","turn_right","brake","do_nothing"]
+        self.model.current_kart += 1
+        action = self.model.get_current_kart().choose_action()
+        if(action == "accelerate"):
+              self.move_kart(1)
+        elif(action == "do_nothing"):
+              self.move_kart(0)
+        elif(action == "brake"):
+              self.move_kart(-1)
+        elif(action == "turn_right"):
+              self.turn_kart(1)
+        elif(action == "turn_left"):
+              self.turn_kart(-1)
         self.model.current_kart -= 1
