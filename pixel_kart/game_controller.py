@@ -7,6 +7,7 @@ Created on Mon Apr 14 08:41:23 2025
 from pixel_kart.game_view import GameEditor, GameInterface
 import tkinter as tk
 from pixel_kart.game_model import Kart, Circuit, Game, AI
+
 import random
 
 class GameManager:
@@ -96,7 +97,7 @@ class GameManager:
         
 
         self.model.modify_player_movement(kart)
-        print("is_alive: ", kart.is_alive)
+
         if(kart.is_alive == False):
               self.interface.draw_end_game(has_winner = False)
               print("loser case")

@@ -1,11 +1,7 @@
 import tkinter as tk
 from tkinter import Tk, ttk
-
 import pixel_kart.pixelKart_dao as dao
 import pixel_kart.pixelKart_circuitFrames as frames
-from pixel_kart.game_controller import GameManager
-from pixel_kart.game_model import Game,Circuit, Kart
-from pixel_kart.game_view import GameEditor, GameInterface
 
 class CircuitEditor(tk.Toplevel):
     """
@@ -86,12 +82,8 @@ class CircuitEditor(tk.Toplevel):
         chose_button = ttk.Button(save_frame, text="Chose", command=self.chose)
         chose_button.pack(side="left", padx=5)
     
-    
-        import_button = ttk.Button(save_frame, text="Launch pixel kart", command=self.launch_pixel_kart)
-        import_button.pack(side="left", padx=5)
+
         
-    def launch_pixel_kart(self):
-        controller = GameManager()
 
     def chose(self):
         """
@@ -127,7 +119,7 @@ class CircuitEditor(tk.Toplevel):
         Opens a popup to ask for the circuit name and saves the circuit using the DAO.
         """
         def save_action():
-            circuit_name = name_var.get()
+            circuit_name = name_var.get().strip()
             circuit_data = self.grid_frame.grid_to_dto()
             try :
                 dao.save_circuit(circuit_name, circuit_data)
@@ -148,11 +140,13 @@ class CircuitEditor(tk.Toplevel):
         ttk.Label(popup, text="Circuit Name:").pack(pady=5)
         name_var = tk.StringVar()
         name_entry = ttk.Entry(popup, textvariable=name_var)
+        print("name entry: ", name_var.get())
         name_entry.pack(pady=5)
-
+        name_entry.focus_set()
+        
         save_popup_button = ttk.Button(popup, text="Save", command=save_action)
         save_popup_button.pack(pady=5)
-
+    
     def change_size(self):
         """
         change the size based on length and width entry
@@ -176,6 +170,6 @@ class CircuitEditor(tk.Toplevel):
 
 if __name__ == "__main__":
     root = Tk()
-    root.withdraw()  # Hide the root window
+    root.withdraw() 
     editor = CircuitEditor(root, callback=lambda x : print(f"Callback with {x}"))
     editor.mainloop()

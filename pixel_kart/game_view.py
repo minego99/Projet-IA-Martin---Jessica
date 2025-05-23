@@ -7,7 +7,7 @@ Created on Mon Apr 14 08:41:11 2025
 import tkinter as tk
 from tkinter import Tk, ttk
 import pixel_kart.const
-
+from pixel_kart.pixelKart_circuit_editor import CircuitEditor
 
 class GameEditor(tk.Toplevel):
     """
@@ -55,13 +55,19 @@ class GameEditor(tk.Toplevel):
         self.submit_callback = None  # le controller pourra donner une fonction
         
         launch_frame = tk.Frame(self)
-        launch_frame.pack()
+        launch_frame.pack()        
+        circuit_editor_button = tk.Button(launch_frame, text= "Launch circuit editor", command=  self.launch_circuit_editor)
         launch_game_button = tk.Button(launch_frame,text="Launch Game without AI", command = self.submit_game_parameters_without_AI)
         launch_game_AI_button = tk.Button(launch_frame, text= "Launch Game with AI", command= self.submit_game_parameters_with_AI)
-
+        
+        circuit_editor_button.pack()
         launch_game_button.pack()
         launch_game_AI_button.pack()
+    
+    def launch_circuit_editor(self):
         
+        root = tk.Tk()
+        CircuitEditor(root, callback=lambda x : print(f"Callback with {x}"))
         
     def print_choice(self):
         """
@@ -184,7 +190,7 @@ class GameInterface(tk.Toplevel):
         """
         frame = tk.Frame(self.main_frame, bg="white", width=200)
         frame.pack(side='left' if is_left else 'right', fill='y')
-        if(player == self.controller.model.karts[1]):
+        if(player != self.controller.model.karts[0]):
             self.controller.model.current_kart +=1
             print("IA INFO")
         # Stocke la frame dans un attribut pour pouvoir la supprimer ensuite
@@ -209,7 +215,7 @@ class GameInterface(tk.Toplevel):
         tk.Label(frame, text='Time: ').pack()
         tk.Label(frame, text=self.controller.model.time).pack()
 
-        if(player == self.controller.model.karts[1]):
+        if(player != self.controller.model.karts[0]):
             self.controller.model.current_kart -=1
             
     def remove_player_infos(self, is_left=True):
@@ -243,14 +249,16 @@ class GameInterface(tk.Toplevel):
         tk.Button(input_frame, text="Brake", command=self.play_brake, bg="red").pack()
         tk.Button(input_frame, text="Skip",command= self.play_skip, bg="purple").pack()
 
-        #self.draw_player_infos(player, is_left)
+      
+
         
     def on_accelerate(self):
         
         self.remove_player_infos(is_left=False)
         self.controller.move_kart(acceleration=1)
-        
+        print(self.controller.model.against_AI)
         if(self.controller.model.against_AI):
+            print("test AI")
             self.remove_player_infos(is_left=True)
             self.controller.move_smart_AI()    
             self.draw_player_infos( "AI",self.players[1], is_left=True)
@@ -358,7 +366,7 @@ class GameInterface(tk.Toplevel):
             
         tk.Label(self.race_frame, text = message).pack()
          
-        self.after(0, self.countdown, 7)
+        self.after(0, self.countdown, 5)
          
     def countdown(self, count):
         

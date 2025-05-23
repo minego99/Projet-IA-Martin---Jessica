@@ -15,10 +15,15 @@ from cubee.gameview import CubeeGameView
 from cubee.gamecontroller import CubeeGameController
 
 
+import pixel_kart.pixelKart_dao as dao
+import pixel_kart.pixelKart_circuitFrames as frames
+from pixel_kart.game_controller import GameManager
+from pixel_kart.game_model import Game,Circuit, Kart
+from pixel_kart.game_view import GameEditor, GameInterface
+
+
 from tkinter import *
 import tkinter as tk
-
-from pixel_kart.pixelKart_circuit_editor import CircuitEditor
 
 
 class App(tk.Tk):
@@ -145,9 +150,9 @@ class MainFrame(tk.Frame):
         # # Lance l'éditeur avec la fonction callback
         # editor = GameEditor(editor_root, start_game)
         # editor_root.mainloop()
-        #controller = GameManager()
-        root = tk.Tk()
-        editor = CircuitEditor(self.container, callback=lambda x : print(f"Callback with {x}"))
+        controller = GameManager()
+        # root = tk.Tk()
+        # editor = CircuitEditor(self.container, callback=lambda x : print(f"Callback with {x}"))
 
 if __name__ == "__main__":
     app = App("Sélection de jeux", [300, 50])

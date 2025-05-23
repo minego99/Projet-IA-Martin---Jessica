@@ -121,45 +121,7 @@ class AI(Kart):
         'right_value' : self.action_values.right_value,
             }
     
-    def update_q_table(self, previous_state, action, reward, new_state):
-        """
-        Met à jour la Q-table après un mouvement.
-        sauvegarde le nouvel état avec les nouvelles valeurs dans la DB
-        """
-    
-        # Obtenir les valeurs Q pour l'état suivant
-        next_q_values = 0 #gameDAO.get_Qline_by_state(new_state)
-        max_future_q = max([
-            next_q_values.accelerate_value,
-            next_q_values.skip_value,
-            next_q_values.brake_value,
-            next_q_values.turn_left_value,
-            next_q_values.turn_right_value
-        ])
-    
-        # Obtenir les valeurs Q de l'état précédent
-        current_q_values = 0 #gameDAO.get_Qline_by_state(previous_state)
-    
-        # Récupérer la Q-value actuelle selon l'action jouée
-        current_q = getattr(current_q_values, f"{action}_value")
-    
-        # Calcul de la nouvelle valeur Q
-        new_q = (1 - self.alpha) * current_q + self.alpha * (reward + self.gamma * max_future_q)
-    
-        # Mise à jour de la valeur correspondante
-        setattr(current_q_values, f"{action}_value", new_q)
-    
-        # Sauvegarde dans la base de données
-        # gameDAO.save_qline({
-        #     'state_id': previous_state,
-        #     'accelerate_value': current_q_values.accelerate_value,
-        #     'skip_value': current_q_values.skip_value,
-        #     'brake_value': current_q_values.brake_value,
-        #     'turn_left_value': current_q_values.turn_left_value
-        #     'turn_right_value': current_q_values.turn_right_value
-
-        # })
-    
+   
     
     def calculate_reward(self, player_pos, opponent_pos):
         """
