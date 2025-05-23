@@ -94,3 +94,4 @@ env/
 /matches/__pycache__
 /cubee/__pycache__
 /pixel_kart/__pycache__
+cubee/cubee.db
