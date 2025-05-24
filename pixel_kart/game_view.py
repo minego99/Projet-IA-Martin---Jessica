@@ -323,8 +323,7 @@ class GameInterface(tk.Toplevel):
             widget.destroy()
         self.cells.clear()
 
-     
-  
+ 
         
     def draw_grid(self, circuit,players):
         """
@@ -376,6 +375,9 @@ class GameInterface(tk.Toplevel):
         else:
             self.destroy()
 
+    def draw_death_AI(self):
+        tk.Label(self.race_frame, text = "AI died").pack()
+     
     def data_to_dto(self):
         """
         Converti La matrice du circuit en une chaîne de caractères

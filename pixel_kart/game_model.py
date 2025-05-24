@@ -71,7 +71,7 @@ class Kart:
 
 
 class AI(Kart):
-    def __init__(self,circuit, position=(0,0), speed=0, direction="right", epsilon = 0.9, gamma = 0.1, alpha = 0.01):
+    def __init__(self,circuit, position=(0,0), speed=0, direction="right", epsilon = 0.0, gamma = 0.1, alpha = 0.01):
         super().__init__(circuit, position, speed, direction)
         self.epsilon = epsilon
         self.gamma = gamma

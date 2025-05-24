@@ -99,9 +99,14 @@ class GameManager:
         self.model.modify_player_movement(kart)
 
         if(kart.is_alive == False):
-              self.interface.draw_end_game(has_winner = False)
-              print("loser case")
-        self.model.time += 1
+            if(self.model.get_current_kart() != self.model.karts[0]):
+                self.interface.draw_death_AI()
+            else:
+                self.interface.draw_end_game(has_winner = False)
+                print("loser case")
+        if(self.model.get_current_kart() == self.model.karts[0]):
+
+            self.model.time += 1
         
         if(kart.laps_done >= self.model.laps):
             self.interface.draw_end_game(has_winner = True)
