@@ -71,6 +71,15 @@ class Kart:
 
 
 class AI(Kart):
+    """
+    Classe du Kart agissant automatiquement selon le comportement d'une IA
+    Hérite de:
+        - Kart
+    attributs:
+        - epsilon-greedy (FLOAT)
+        - alpha ( = learning-rate) (FLOAT)
+        - gamma (FLOAT)
+    """
     def __init__(self,circuit, position=(0,0), speed=0, direction="right", epsilon = 0.0, gamma = 0.1, alpha = 0.01):
         super().__init__(circuit, position, speed, direction)
         self.epsilon = epsilon

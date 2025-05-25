@@ -115,6 +115,11 @@ class GameManager:
         self.interface.draw_grid(self.model.circuit, self.model.karts)
 
     def turn_kart(self, movement):
+        """
+        Gère les instructions pour faire tourner un kart, en changeant son orientation puis en le faisant se déplacer en fonction de sa nouvelle orientation
+        Si le mouvement est de 1, le kart tourne vers la droite
+        S'il est de -1, le kart tourne vers la gauche
+        """
             
         kart = self.model.karts[self.model.current_kart]
         self.model.turn(kart,movement)
@@ -122,6 +127,9 @@ class GameManager:
            
                         
     def move_random_AI(self):
+        """
+        fonction d'exploration, fait déplacer un kart en fonction des déplacements possibles
+        """
         
         print("move AI")
         self.model.current_kart += 1
@@ -141,7 +149,7 @@ class GameManager:
         
     def move_smart_AI(self):
         """
-        déplace le kart en fonction de la q-value la plus élevée pour son état
+        fonction d'exploitation, déplace le kart en fonction de la q-value la plus élevée pour son état
         """
         actions = ["accelerate","turn_left","turn_right","brake","do_nothing"]
         self.model.current_kart += 1

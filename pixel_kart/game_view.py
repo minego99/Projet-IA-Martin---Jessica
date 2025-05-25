@@ -65,7 +65,9 @@ class GameEditor(tk.Toplevel):
         launch_game_AI_button.pack()
     
     def launch_circuit_editor(self):
-        
+        """
+        Crée un éditeur de circuit sur base de la classe "CircuitEditor"
+        """
         root = tk.Tk()
         CircuitEditor(root, callback=lambda x : print(f"Callback with {x}"))
         
@@ -219,6 +221,10 @@ class GameInterface(tk.Toplevel):
             self.controller.model.current_kart -=1
             
     def remove_player_infos(self, is_left=True):
+        """
+        supprime les informations d'un joueur(vitesse, orientation,nom)
+        si les informations sont placées à gauche, il s'agit de l'IA, si elles sont à gauche, il s'agit du joueur
+        """
         
         if is_left and hasattr(self, 'player_info_frame_left') and self.player_info_frame_left:
             self.player_info_frame_left.destroy()
@@ -253,7 +259,11 @@ class GameInterface(tk.Toplevel):
 
         
     def on_accelerate(self):
-        
+        """
+        Gère toutes les instructions si ke joueur décide d'accélérer' 
+        déplacement du joueur avec une accélération de 1
+        Les autres fonctions de déplacement ont beaucoup de redondance, mais tkinter ne veut pas gérer correctement les fonctions lambda
+        """
         self.remove_player_infos(is_left=False)
         self.controller.move_kart(acceleration=1)
         print(self.controller.model.against_AI)
@@ -267,7 +277,11 @@ class GameInterface(tk.Toplevel):
         
                 
     def play_turn_left(self):
-        
+        """
+        Gère toutes les instructions si ke joueur décide de tourner à gauche
+        déplacement du joueur en tournant vers la gauche
+        """
+            
         self.remove_player_infos(is_left=False)
         self.controller.turn_kart(-1)
         
@@ -280,7 +294,11 @@ class GameInterface(tk.Toplevel):
         self.draw_player_infos("Human",self.players[0], is_left=False )
 
     def play_turn_right(self):
-        
+        """
+        Gère toutes les instructions si ke joueur décide de tourner à droite
+        déplacement du joueur en tournant vers la droite
+        """
+            
         self.remove_player_infos(is_left=False)
         self.controller.turn_kart(1)
         
@@ -292,6 +310,10 @@ class GameInterface(tk.Toplevel):
         self.draw_player_infos("Human",self.players[0], is_left=False )
              
     def play_brake(self):
+        """
+        Gère toutes les instructions si ke joueur décide de freiner 
+         déplacement du joueur avec une accélération de -1
+        """
         
         self.remove_player_infos(is_left=True)
         self.controller.move_kart(acceleration=-1)
@@ -304,6 +326,11 @@ class GameInterface(tk.Toplevel):
         self.draw_player_infos("Human",self.players[0], is_left=False )
 
     def play_skip(self):
+        """
+        Gère toutes les instructions si ke joueur décide d'attendre 
+         déplacement du joueur avec une accélération de -10
+        """
+        
         
         self.remove_player_infos(is_left=False)
         self.controller.move_kart(acceleration=0)
@@ -357,6 +384,9 @@ class GameInterface(tk.Toplevel):
             self.cells[kart.position[1]][kart.position[0]].config(bg=color)
 
     def draw_end_game(self, has_winner):
+        """
+        Gère l'affichage de fin de partie, si c'est parce qu'il y a un gagnant affiche le message adéquat et ferme la fenêtre au bout de 5 secondes
+        """
         
         if(has_winner):
             message = "You won !"
@@ -368,6 +398,9 @@ class GameInterface(tk.Toplevel):
         self.after(0, self.countdown, 5)
          
     def countdown(self, count):
+        """
+        Ferme la fenêtre concernée après un délai donné
+        """
         
         tk.Label(self.race_frame, text=f"Fermeture dans {count} secondes...")
         if count > 0:
@@ -376,6 +409,9 @@ class GameInterface(tk.Toplevel):
             self.destroy()
 
     def draw_death_AI(self):
+        """
+        Si une IA a foncé dans un mur, affiche le fait qu'elle soit morte
+        """
         tk.Label(self.race_frame, text = "AI died").pack()
      
     def data_to_dto(self):

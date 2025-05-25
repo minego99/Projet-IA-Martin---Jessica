@@ -14,6 +14,12 @@ SESSION = Session()
 
 # Table QLine
 class QLine(Base):
+    """
+    Classe Représentant une Qline, utilisée pour enregistrer l'état d'un kart
+    attributs:
+        - id, reprenant l'environnement immédiat du kart, ainsi que sa direction et sa vitesse (STR resessemblant à RRRRRRRRRWGRRRRGR;down;2)
+        - actions values pour chacune des actions possible (accélerer, freiner, passer, tourner à gauche/droite) (INT)
+    """
     __tablename__ = 'QTable'
     id = Column(String, primary_key=True)  # représente l'état unique
     accelerate = Column(Float, nullable=True)
@@ -114,6 +120,9 @@ def get_Qline_by_state(state):
     return line
 
 def save_qline(qline_dict):
+    """
+    Ajoute une Qline sous forme de dictionnaire et essaye de la sauvegarder si son format est valide
+    """
     try:
         qline = QLine.from_dto(qline_dict)
         SESSION.merge(qline)
