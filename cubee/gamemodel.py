@@ -454,7 +454,7 @@ class CubeeAI(CubeePlayer):
         current_q = getattr(current_q_values, f"{action}_value")
     
         # Calcul de la nouvelle valeur Q
-        new_q = (1 - self.alpha) * current_q + self.alpha * (reward + self.gamma * max_future_q)
+        new_q = self.alpha * current_q + self.alpha * (reward + self.gamma * max_future_q)
     
         # Mise à jour de la valeur correspondante
         setattr(current_q_values, f"{action}_value", new_q)

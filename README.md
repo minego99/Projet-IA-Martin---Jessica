@@ -32,7 +32,7 @@ Cubee :
 PixelKart: 
 
     Pour lancer le jeu, passer par le script main.
-    Le main ouvre un éditeur de partie. Vous pouvez y choisir le circuit enregistré, le nombre de tours prévus (obligatoire pour lancer le jeu), ainsi que le choix de lancer le jeu seul ou avec une IA (au comportement aléatoire pour l'instant). 
+    Le main ouvre un éditeur de partie. Vous pouvez y choisir le circuit enregistré, le nombre de tours prévus (obligatoire pour lancer le jeu), ainsi que le choix de lancer le jeu seul ou avec une IA. Vous pouvez aussi y lancer l'éditeur de circuit.
     
 
     Déroulement: 
@@ -45,7 +45,8 @@ PixelKart:
         À chaque début de tour, le kart avance dans sa direction actuelle le nombre de cases correspondantes.
         Un tour est terminé lorsque le joueur passe correctement la ligne d'arrivée.
         Les informations des joueurs (vitesse, direction, tours réalisés, actions jouées (au total)) sont visibles durant la partie pour chaque joueur.
-        
+        Si un joueur passe sur une case d'herbe, le déplacement sera calculé avec la moitié de la vitesse, arrondi au supérieur.
+        Et si un joueur fonce dans un mur, sa partie sera perdue et le jeu se fermera (si c'est une IA, elle sera immobilisée jusqu'à la fin de la partie du joueur).
         
     
     But: 
