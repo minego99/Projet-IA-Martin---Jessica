@@ -7,6 +7,8 @@ Created on Fri Apr 11 11:35:30 2025
 import pixelKart_dao as dao
 import gameDAO as AI_dao
 import random
+import matplotlib.pyplot as plt
+
 
 class Kart:
     """
@@ -77,14 +79,14 @@ class AI(Kart):
         - alpha ( = learning-rate) (FLOAT)
         - gamma (FLOAT)
     """
-    def __init__(self, position=(0,0), speed=0, direction="right"):
+    def __init__(self, position=(0,0), speed=0, direction="right", epsilon = 0.9, alpha = 0.1, gamma = 0.9):
      super().__init__(position, speed, direction)
     
      
      self.current_state = None
-     self.epsilon = 0.1
-     self.alpha = 0.1
-     self.gamma = 0.9
+     self.epsilon = epsilon
+     self.alpha = alpha
+     self.gamma = gamma
      self.current_state = AI_dao.get_Qline_by_state("0")
 
 
@@ -124,24 +126,47 @@ class AI(Kart):
     
 
     
-    def calculate_reward(self, state,time, actions_per_game):
+    def calculate_reward(self, state, time, actions_per_game, circuit):
         """
-        Calcule la récompense basée sur le mouvement effectué par l'IA.
-        renvoie:
-            - la récompense (FLOAT)
+        Calcule la récompense basée sur la vitesse, progression, collisions, et distance.
         """
-        reward = 0
-
-        if(self.speed >= 1):
-            reward += 1
-        elif(self.speed == 2): 
+        reward = 0.0
+    
+        # Récompense de vitesse
+        if self.speed == 2:
             reward += 2
-        #diminuer la récompense si on se rapproche de la fin de la partie
+        elif self.speed == 1:
+            reward += 1
+        else:
+            reward -= 0.5  # Malus si à l'arrêt
+    
+        # Récompense de progression dans le temps
         reward += max(0, 2 - (actions_per_game - time) / 10)
-        if(self.laps_done >= 1):
+    
+        # Récompense si tour terminé
+        if self.laps_done >= 1:
             reward += 10
-      
+        #si le kart est sorti du circuit
+        if(self.position not in circuit):
+            reward -= 10
+        else:
+            next_pos = self.predict_next_position()
+            #malus s'il y a un mur devant lui
+            if(circuit.grid[next_pos[0]][next_pos[1]] == 'W'):
+                reward -= 10
+            # léger malus s'il y a du gazon devant lui
+            elif(circuit.grid[next_pos[0]][next_pos[1]] == 'G'):
+                reward -= 1
+            # bonus s'il reste sur la route
+            elif(circuit.grid[next_pos[0]][next_pos[1]] == 'R'):
+                reward += 1
+
+        #second malus s'il est sur le bord de la carte
+        if("XXXXXXXXX" in state):
+            reward = -20
+
         return reward
+
     
     def update_q_table(self, previous_state, action, reward, new_state):
         """
@@ -169,7 +194,6 @@ class AI(Kart):
         new_q = current_q + self.alpha * (reward + self.gamma * max_future_q - current_q)
     
         # Mise à jour de la valeur correspondante
-        
         setattr(current_q_values, f"{action}", new_q)
 
         AI_dao.save_qline(current_q_values.to_dto())
@@ -243,6 +267,7 @@ class Game():
         """
         # Vérifie la direction et la vitesse du joueur
         for i in range(current_player.speed):
+            
             # Prévoir la prochaine position
             next_pos = current_player.predict_next_position()
 
@@ -425,61 +450,67 @@ class Game():
         
         
 def train_AI(training_amount, actions_per_game, epsilon_decay):
-    """
-    génère une cession d'entraînement pour une IA
-    Crée un nouveau joueur IA, lui crée une partie avec le circuit basique
-    pour un certain nombre de parties:
-        l'IA démarre sur la ligne d'arrivé, et obtient la Qline correspondante (correspond à l'environnement proche, la vitesse et l'orientation)
-        en fonction de son epsilon-greedy, elle va soit prendre une décision aléatoire, soit prendre la plus grande dans sa Qline
-        après son déplacement, la valeur liée à la décision prise pour la QLine sera augmentée si:
-            - le temps passé dans la game est bas
-            - un déplacement a été remarqué
-            - un tour a été accompli
-             
-        et sera diminuée si:
-            - le décompte des déplacements est diminué
-            - le joueur ne tourne pas alors qu'il a un mur devant lui
-    
-    à la fin de l'entraînement, affiche le nombre de tours de circuits réussis 
-
-    """
     AI_player = AI(position=(0,0),speed=0,direction="right")
-    training_game = Game(laps = 1,karts=AI_player, circuit= dao.get_by_name("Basic"))
+    training_game = Game(laps=1, karts=[AI_player], circuit=dao.get_by_name("Basic"))
     game_won = 0
-    actions = ['accelerate', 'do_nothing', 'turn_left', 'turn_right','brake']
-    
+    actions = ['accelerate', 'do_nothing', 'turn_left', 'turn_right', 'brake']
     
     min_epsilon = 0.01
-    for game in range(0,training_amount):
-        
+    
+    for game in range(training_amount):
         training_game.time = 0
         AI_player.position = random.choice(training_game.get_finish_lines())
-        previous_state= AI_dao.encode_state(training_game.circuit.grid, AI_player.position[0], AI_player.position[1], AI_player.direction, AI_player.speed)
+        AI_player.speed = 0
+        AI_player.direction = "right"
+        AI_player.laps_done = 0
         
-        while(training_game.time <= actions_per_game):
-            
+        previous_state = AI_dao.encode_state(training_game.circuit.grid, AI_player.position[0], AI_player.position[1], AI_player.direction, AI_player.speed)
+        
+        while training_game.time <= actions_per_game:
+            print("turn: ", training_game.time, "game: ", game)
             if random.uniform(0, 1) < AI_player.epsilon:
-                # Exploration : choisir une action aléatoire
                 action = random.choice(actions)
             else:
-                action = AI_player.choose_action(training_game.circuit,actions)
+                action = AI_player.choose_action(training_game.circuit, actions)
             
             training_game.move_AI(action, AI_player)
             
             new_state = AI_dao.encode_state(training_game.circuit.grid, AI_player.position[0], AI_player.position[1], AI_player.direction, AI_player.speed)
             
-            AI_player.update_q_table(previous_state, action, AI_player.calculate_reward(previous_state, training_game.time, actions_per_game), new_state)
+            reward = AI_player.calculate_reward(previous_state, training_game.time, actions_per_game, training_game.circuit.grid)
+            AI_player.update_q_table(previous_state, action, reward, new_state)
             
-            #le temps était calculé dans le game_controller, donc on le fait passer ici
             training_game.time += 1
-            
-            
-            if(AI_player.laps_done > 1):
+            previous_state = new_state
+
+            if AI_player.laps_done >= 1:
                 game_won += 1
-                training_game.reset()     
+                training_game.reset()
+        
         AI_player.epsilon = max(min_epsilon, AI_player.epsilon * epsilon_decay)
-        training_game.reset()
-    print("game won: ", game_won, " / ", training_amount)
     
+    print(f"Nombre de parties gagnées par l'IA : {game_won}/{training_amount}")
+
+    
+def plot_training_performance(results):
+    """
+    Affiche un graphique de l'évolution des performances de l'IA pendant l'entraînement.
+    
+    :param results: Liste booléenne ou entière (1 pour victoire, 0 pour défaite) représentant les résultats des parties.
+    """
+    victories = [0]
+    for win in results:
+        victories.append(victories[-1] + win)
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(len(victories)), victories, label="Victoires cumulées", color="green")
+    plt.xlabel("Nombre de parties jouées")
+    plt.ylabel("Nombre de victoires")
+    plt.title("Performance de l'IA pendant l'entraînement")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 if(__name__ == "__main__"):
-    train_AI(training_amount=1000, actions_per_game = 100, epsilon_decay=0.9)
+    train_AI(training_amount=200, actions_per_game = 75, epsilon_decay=0.00009)

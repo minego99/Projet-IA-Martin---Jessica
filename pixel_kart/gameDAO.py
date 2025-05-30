@@ -8,7 +8,7 @@ class Base(DeclarativeBase):
     pass
 
 # Connexion à la base
-engine = create_engine('sqlite:///pixelkart.db')
+engine = create_engine('sqlite:///pixelkart_model_3.db')
 Session = sessionmaker(bind=engine)
 SESSION = Session()
 
@@ -53,18 +53,12 @@ class QLine(Base):
 
 def encode_state(grid, x, y, direction, speed):
     """
-    crée un état à partir de l'état de l'IA
-    arguments:
-        - grille du circuit [[CHAR]]
-        - position X du joueur (INT)
-        - position y du joueur (INT)
-        - direction du joueur (STR)
-        - vitesse du joueur (min -1, max 2)
-        
-    renvoie:
-        - l'état du joueur (STR)
+    Encode l'état du joueur sous forme de chaîne, avec une vision en flèche inversée :
+    d'abord la ligne la plus proche du joueur (5 cases), puis celle à 2 de distance (3 cases),
+    puis celle à 3 (1 case), puis la case derrière.
     """
-    
+
+    # Vecteur directionnel principal
     dx, dy = 0, 0
     if direction == 'up':
         dx, dy = 0, -1
@@ -75,22 +69,40 @@ def encode_state(grid, x, y, direction, speed):
     elif direction == 'left':
         dx, dy = -1, 0
 
+    # Vecteurs latéraux (gauche/droite)
+    perp_dx, perp_dy = -dy, dx
+
     def safe_get(x, y):
         if 0 <= x < len(grid) and 0 <= y < len(grid[0]):
             return grid[x][y]
         return "X"
 
     vision = []
-    for dist in range(1, 5):
-        for lateral in range(-dist + 1, dist):
-            if dx == 0:
-                vision.append(safe_get(x + lateral, y + dy * dist))
-            else:
-                vision.append(safe_get(x + dx * dist, y + lateral))
 
-    vision.append(safe_get(x - dx, y - dy))
+    # Ligne 1 (5 cases, juste devant le joueur)
+    for offset in [-2, -1, 0, 1, 2]:
+        px = x + dx + perp_dx * offset
+        py = y + dy + perp_dy * offset
+        vision.append(safe_get(px, py))
+
+    # Ligne 2 (3 cases, deux cases devant)
+    for offset in [-1, 0, 1]:
+        px = x + 2 * dx + perp_dx * offset
+        py = y + 2 * dy + perp_dy * offset
+        vision.append(safe_get(px, py))
+
+    # Ligne 3 (1 case, trois cases devant)
+    px = x + 3 * dx
+    py = y + 3 * dy
+    vision.append(safe_get(px, py))
+
+    # Case derrière
+    px = x - dx
+    py = y - dy
+    vision.append(safe_get(px, py))
+    # rrrrrrrRgr case juste devant
+    # Format final (base de la flèche → pointe → arrière)
     encoded = "".join(vision) + f";{direction};{speed}"
- 
     return encoded
 
 # DAO Utilitaire
@@ -152,15 +164,17 @@ def print_all_qstates_summary(limit=None):
     
     print(f"{'State ID':<30} | Acc | Brk | Lft | Rgt | Nth")
     print("-" * 70)
-    
+    i=0
     for line in qlines:
-        print(f"{line.id[:30]:<30} | "
-              f"{line.accelerate:.2f} | "
-              f"{line.brake:.2f} | "
-              f"{line.turn_left:.2f} | "
-              f"{line.turn_right:.2f} | "
-              f"{line.do_nothing:.2f}")
-        
+        if(i < 1000):
+            i+=1
+            print(f"{line.id[:30]:<30} | "
+                  f"{line.accelerate:.2f} | "
+                  f"{line.brake:.2f} | "
+                  f"{line.turn_left:.2f} | "
+                  f"{line.turn_right:.2f} | "
+                  f"{line.do_nothing:.2f}")
+            
 def clear_qtable():
     """
     Supprime toutes les entrées de la Q-table sans supprimer la table elle-même.
@@ -191,4 +205,5 @@ if __name__ == '__main__':
         'do_nothing': 0.1
     }
     save_qline(example_q)
+    #☺clear_qtable()
     print_all_qstates_summary()
