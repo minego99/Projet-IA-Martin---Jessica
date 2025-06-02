@@ -367,78 +367,74 @@ class CubeeHuman(CubeePlayer):
         self.player_name = player_name
 
 class CubeeAI(CubeePlayer):
-    def __init__(self, AI_name, alpha=0.1, gamma=0.9, epsilon=0.1):
+    def __init__(self, AI_name, alpha=0.1, gamma=0.9, epsilon=0.5, min_epsilon=0.01, decay=0.995):
         """
-        Constructeur du profil du joueur IA intelligent.
-        
-        arguments:
-            - AI_name: nom de l'IA (STR)
-            - qtable: instance de la QTable pour la gestion des valeurs Q
-            - alpha: taux d'apprentissage (FLOAT)
-            - gamma: importance des récompenses futures (FLOAT)
-            - epsilon: taux d'exploration (FLOAT)
-        """
-        super().__init__(AI_name)  
-        
-        self.alpha = alpha  # Learning rate
-        self.gamma = gamma  # Récompenses futures
-        self.epsilon = epsilon  # Exploration vs exploitation
+        Initialise l'IA avec les paramètres d'apprentissage.
 
-        self.action_values = gameDAO.get_Qline_by_state("0")
-        print("test")
-        #initialisation de l'état de la partie initiale, impossible d'aller chercher le modèle avant qu'il soit assigné à l'IA donc un état "initial" est assigné 
+        Args:
+            AI_name (str): Nom de l'IA.
+            alpha (float): Taux d'apprentissage.
+            gamma (float): Facteur de remise (discount factor).
+            epsilon (float): Taux d'exploration initial.
+            min_epsilon (float): Taux d'exploration minimum.
+            decay (float): Taux de décroissance de epsilon après chaque action.
+        """
+        super().__init__(AI_name)
+        self.alpha = alpha  # taux d'apprentissage
+        self.gamma = gamma  # facteur de remise (discount factor)
+        self.epsilon = epsilon  # taux d'exploration initial
+        self.min_epsilon = min_epsilon  # epsilon minimum
+        self.decay = decay  # taux de décroissance de epsilon
+        self.actions = ['up', 'down', 'left', 'right']
+
     def choose_action(self):
-        """Choisit une action selon une stratégie ε-greedy."""
+        """
+        Choisit l'action à effectuer selon la politique epsilon-greedy.
+
+        Retourne une action valide basée sur la Q-table, soit en explorant 
+        aléatoirement, soit en exploitant la meilleure action connue.
+        """
         state_id = self.model.create_state()
         q_values = gameDAO.get_Qline_by_state(state_id)
-    
-        actions = ['up', 'down', 'left', 'right']
+
+        # Récupérer les valeurs Q dans une liste
         values = [
             q_values.up_value,
             q_values.down_value,
             q_values.left_value,
             q_values.right_value
         ]
-    
-        if random.uniform(0, 1) < self.epsilon:
-            # Exploration : choisir une action aléatoire
-            return random.choice(actions)
-        else:
-            # Exploitation : choisir l'action avec la plus grande valeur Q
-            max_index = values.index(max(values))
-            return actions[max_index]
 
-#     def choose_action(self, state):
-#         """Sélectionne l'action en fonction de la Q-table ou exploration."""
-#         q_values = self.qtable.get_q_values(state)
-#         if random.uniform(0, 1) < self.epsilon:
-#             return random.choice(["up", "down", "left", "right"])
-#         return max(q_values, key=q_values.get)
-    def data_to_dto(self):
-        """
-        convertit l'état de la partie et le transforme en un dictionnaire avec les poids dedans
-        """
-        
-        state_id = self.model.create_state()
-        for i, elem in enumerate(self.model.grid):
-            for j, elem in enumerate(self.model.grid):
-                state_id += str(self.model.grid[i][j])
- 
-        return{
-        'state_id' : state_id,
-        'up_value' : self.action_values.up_value,
-        'down_value' : self.action_values.down_value,
-        'left_value' : self.action_values.left_value,
-        'right_value' : self.action_values.right_value,
-            }
+        # Filtrer les actions invalides pour l'état actuel
+        valid_actions = []
+        valid_values = []
+        for i, action in enumerate(self.actions):
+            if self.model.is_move_valid(self, action):
+                valid_actions.append(action)
+                valid_values.append(values[i])
+
+        if not valid_actions:
+            # Aucun mouvement valide, retourner None ou un mouvement par défaut
+            return None
+
+        if random.uniform(0, 1) < self.epsilon:
+            # Exploration parmi les mouvements valides
+            return random.choice(valid_actions)
+        else:
+            # Exploitation parmi les mouvements valides
+            max_index = valid_values.index(max(valid_values))
+            return valid_actions[max_index]
 
     def update_q_table(self, previous_state, action, reward, new_state):
         """
-        Met à jour la Q-table après un mouvement.
-        sauvegarde le nouvel état avec les nouvelles valeurs dans la DB
+        Met à jour la Q-table selon la formule du Q-learning.
+
+        Args:
+            previous_state: état avant action
+            action (str): action réalisée
+            reward (float): récompense reçue
+            new_state: nouvel état après action
         """
-    
-        # Obtenir les valeurs Q pour l'état suivant
         next_q_values = gameDAO.get_Qline_by_state(new_state)
         max_future_q = max([
             next_q_values.up_value,
@@ -446,20 +442,13 @@ class CubeeAI(CubeePlayer):
             next_q_values.left_value,
             next_q_values.right_value
         ])
-    
-        # Obtenir les valeurs Q de l'état précédent
+
         current_q_values = gameDAO.get_Qline_by_state(previous_state)
-    
-        # Récupérer la Q-value actuelle selon l'action jouée
         current_q = getattr(current_q_values, f"{action}_value")
-    
-        # Calcul de la nouvelle valeur Q
-        new_q = self.alpha * current_q + self.alpha * (reward + self.gamma * max_future_q)
-    
-        # Mise à jour de la valeur correspondante
+
+        new_q = (1 - self.alpha) * current_q + self.alpha * (reward + self.gamma * max_future_q)
+
         setattr(current_q_values, f"{action}_value", new_q)
-    
-        # Sauvegarde dans la base de données
         gameDAO.save_qline({
             'state_id': previous_state,
             'up_value': current_q_values.up_value,
@@ -468,43 +457,62 @@ class CubeeAI(CubeePlayer):
             'right_value': current_q_values.right_value
         })
 
-
     def calculate_reward(self, player_pos, opponent_pos):
         """
-        Calcule la récompense basée sur le mouvement effectué par l'IA.
-        renvoie:
-            - la récompense (FLOAT)
+        Calcule la récompense pour l'état donné en fonction de la position des joueurs.
+
+        Args:
+            player_pos (tuple): position du joueur IA (x, y)
+            opponent_pos (tuple): position de l'adversaire (x, y)
+
+        Returns:
+            float: valeur de la récompense
         """
         reward = 0
-        # Pénalité si le mouvement sort des limites
-        # 0 : lignes (haut - bas) et 1 : colonnes (gauche - droite)
-        # player_pos[0] < 0 → Le joueur dépasse la limite haute (-1)
-        # player_pos[0] >= len(board) → Le joueur dépasse la limite basse (5 si le tableau fait 5 lignes)
-        # player_pos[1] < 0 → Le joueur dépasse la limite gauche (-1)
-        # player_pos[1] >= len(board[0]) → Le joueur dépasse la limite droite (5 si le tableau fait 5 colonnes)
-        if player_pos[0] < 0 or player_pos[0] >= len(self.model.grid) or player_pos[1] < 0 or player_pos[1] >= len(self.model.grid):
-            reward -= 10  # Pénalité pour sortie
+        grid_size = len(self.model.grid)
 
-        # Récompense pour les cases prises
-        player_score = sum(row.count(1) for row in self.model.grid)  # Nombre de cases du joueur
-        opponent_score = sum(row.count(2) for row in self.model.grid)  # Nombre de cases de l'adversaire
-        reward += (player_score - opponent_score)  # Récompense immédiate
-       # print("reward: ", reward)
+        # Pénalité sortie de grille
+        if player_pos[0] < 0 or player_pos[0] >= grid_size or player_pos[1] < 0 or player_pos[1] >= grid_size:
+            return -10
+
+        player_score = sum(row.count(1) for row in self.model.grid)
+        opponent_score = sum(row.count(2) for row in self.model.grid)
+
+        # Récompense principale : différence des scores
+        reward += (player_score - opponent_score) * 5
+
+        # Bonus si proche du centre (favoriser le contrôle du centre)
+        center = grid_size // 2
+        dist_to_center = abs(player_pos[0] - center) + abs(player_pos[1] - center)
+        reward += max(0, 3 - dist_to_center)  # plus proche, plus de récompense
+
+        # Pénalité si proche adversaire (ex: éviter d'être enfermé)
+        dist_to_opponent = abs(player_pos[0] - opponent_pos[0]) + abs(player_pos[1] - opponent_pos[1])
+        if dist_to_opponent == 1:
+            reward -= 2  # trop proche = danger
+
         return reward
 
-def training(model, training_amount, epsilon_rate):
+    def decay_epsilon(self):
+        """
+        Décroissance progressive du taux d'exploration epsilon après chaque action.
+        """
+        if self.epsilon > self.min_epsilon:
+            self.epsilon *= self.decay
+            if self.epsilon < self.min_epsilon:
+                self.epsilon = self.min_epsilon
+
+def training(model, training_amount):
     """
-    Entraîne l'IA intelligente contre une IA aléatoire sur un nombre défini de parties.
-    
-    Arguments:
-        - model : une instance de CubeeGameModel
-        - training_amount : nombre de parties à jouer (INT)
-        - epsilon_rate : vitesse à laquelle le epsilon de l'IA ira varier
+    Fonction d'entraînement de l'IA par auto-jeu contre un adversaire aléatoire.
+
+    Args:
+        model: instance du modèle du jeu
+        training_amount (int): nombre d'épisodes d'entraînement
     """
     ai = None
     random_ai = None
     
-    # Identifier l'IA intelligente et l'IA aléatoire
     for player in model.players:
         if isinstance(player, CubeeAI):
             ai = player
@@ -513,7 +521,6 @@ def training(model, training_amount, epsilon_rate):
 
     ai_wins = 0
     for episode in range(training_amount):
-        print(episode)
         model.reset()
         
         while not model.is_over():
@@ -523,17 +530,25 @@ def training(model, training_amount, epsilon_rate):
                 prev_state = model.create_state()
                 action = ai.choose_action()
 
-                # Tenter le mouvement, sinon essayer une autre action aléatoire
-                if not model.move(ai, action):
-                    action = random.choice(["up", "down", "left", "right"])
-                    model.move(ai, action)
+                if action is None or not model.move(ai, action):
+                    # Pas d'action valide ou échec => mouvement aléatoire valide
+                    valid_moves = [a for a in ai.actions if model.is_move_valid(ai, a)]
+                    if valid_moves:
+                        action = random.choice(valid_moves)
+                        model.move(ai, action)
+                    else:
+                        # Aucun mouvement possible
+                        break
 
                 model.step()
                 new_state = model.create_state()
                 reward = ai.calculate_reward(model.player1_pos, model.player2_pos)
                 ai.update_q_table(prev_state, action, reward, new_state)
+
+                # Décroissance d'epsilon pour affiner l'exploitation
+                ai.decay_epsilon()
+
             else:
-                # IA aléatoire : mouvements jusqu'à ce qu'un mouvement valide soit trouvé
                 moved = False
                 while not moved:
                     rand_action = random.choice(["up", "down", "left", "right"])
@@ -541,24 +556,19 @@ def training(model, training_amount, epsilon_rate):
                 model.step()
 
             model.switch_player()
-            if(episode%1000 == 0):
-                  ai.epsilon += (epsilon_rate * ai.epsilon)/100
-            if(episode%10000 == 0):
-                  print("epsilon: ", ai.epsilon)
-                  print(episode, " parties jouées")    
-                  print(f"Victoires de l'IA intelligente : {ai_wins}")
-                  print(f"Taux de victoire : {ai_wins / training_amount * 100:.2f}%")
-        # Compter les victoires
+
         winner = model.get_winner()
         if model.players[winner] == ai:
             ai_wins += 1
 
-    #print(f"Partie {episode + 1}/{training_amount} - Gagnant : {model.players[winner].player_name if winner != -1 else 'Égalité'}")
+        if episode % 1000 == 0:
+            print(f"Episode {episode}, Epsilon: {ai.epsilon:.4f}, Win rate: {ai_wins / (episode+1) * 100:.2f}%")
 
     print("\n=== Résultats de l'entraînement ===")
     print(f"Total de parties : {training_amount}")
     print(f"Victoires de l'IA intelligente : {ai_wins}")
     print(f"Taux de victoire : {ai_wins / training_amount * 100:.2f}%")
+
 
 if(__name__ == '__main__'):
     
